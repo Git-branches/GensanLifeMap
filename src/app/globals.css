@@ -1,8 +1,43 @@
 @import "tailwindcss";
 
+/* ============================================================
+   GenSan LifeMap design tokens — the single source of truth,
+   extracted from the landing-page mockup (design-workflow/).
+   Components must reference these values (via the Tailwind
+   classes documented below, or the `ui/` primitives) instead of
+   inventing new colors, radii, or spacing.
+   ------------------------------------------------------------
+   Navy bands ........ #0a1c30 (header/hero/footer) · #071425 base
+   Primary action .... blue-600 (#2563eb) / hover blue-700
+   Focus ring ........ blue-600
+   Category colors ... locations blue-600 · projects green-600 ·
+                       facilities orange-500 · announcements purple-600
+   Map dots .......... same four category hues
+   Light surfaces .... white cards / #f4f7fb page tint
+   Borders ........... zinc-200 · dark zinc-800
+   Text .............. zinc-900 headings / zinc-600 body /
+                       zinc-500 metadata · dark zinc-50/400/400
+   Radius ............ rounded-full buttons/chips ·
+                       rounded-xl cards · rounded-lg inputs
+   Container ......... max-w-6xl, px-4
+   ============================================================ */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --glm-navy: #0a1c30;
+  --glm-navy-deep: #071425;
+  --glm-brand: #2563eb;
+  --glm-brand-hover: #1d4ed8;
+  --glm-cat-location: #2563eb;
+  --glm-cat-project: #16a34a;
+  --glm-cat-facility: #f97316;
+  --glm-cat-announcement: #9333ea;
+  --glm-dot-location: #2563eb;
+  --glm-dot-project: #16a34a;
+  --glm-dot-facility: #f97316;
+  --glm-container-max: 72rem; /* max-w-6xl */
 }
 
 @theme inline {
@@ -23,4 +58,182 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---- GenSan LifeMap markers (Leaflet divIcons) ---- */
+.lifemap-marker-wrap {
+  background: transparent;
+  border: none;
+}
+
+.lifemap-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+.lifemap-dot--location {
+  background-color: #2563eb;
+}
+
+.lifemap-dot--project {
+  background-color: #16a34a;
+}
+
+.lifemap-dot--facility {
+  background-color: #f97316;
+}
+
+.lifemap-dot--selected {
+  width: 24px;
+  height: 24px;
+  outline: 3px solid rgb(37 99 235 / 0.4);
+  outline-offset: 1px;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.lifemap-popup-kind {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.lifemap-popup-title {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.lifemap-popup-meta {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.lifemap-popup-action {
+  margin-top: 8px;
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #2563eb;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.lifemap-popup-action:hover {
+  background-color: #1d4ed8;
+}
+
+/* ---- Mockup-derived decorative surfaces (no photo assets) ---- */
+
+/* Hero: deep-navy night gradient with a faint contour-dot texture,
+   echoing the aerial bay photo's dark left half. */
+.glm-hero-bg {
+  isolation: isolate;
+  position: relative;
+  background: #071425;
+}
+
+.glm-hero-bg::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 auto;
+  width: min(68%, 980px);
+  content: "";
+  background:
+    linear-gradient(90deg, #071425 0%, rgb(7 20 37 / 0.82) 12%, rgb(7 20 37 / 0.22) 60%, rgb(7 20 37 / 0.08) 100%),
+    linear-gradient(0deg, rgb(7 20 37 / 0.28), transparent 50%),
+    url("/images/landing/hero.jpg") center / cover no-repeat;
+}
+
+/* Faint dotted contour texture used on light sections (glance band). */
+.glm-dot-grid {
+  background-image: radial-gradient(circle, rgb(11 28 48 / 0.09) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Category photo-fallback gradients for explore cards (16:9 tops). */
+.glm-photo-location {
+  background: #1e40af url("/images/landing/location.jpg") center 54% / cover no-repeat;
+}
+.glm-photo-project {
+  background: #14532d url("/images/landing/project.jpg") center 54% / cover no-repeat;
+}
+.glm-photo-facility {
+  background: #7c2d12 url("/images/landing/facility.jpg") center 54% / cover no-repeat;
+}
+
+/* Dark stylized map panel for the LifeMap preview band. */
+.glm-map-panel {
+  background:
+    linear-gradient(0deg, rgb(7 20 37 / 0.18), rgb(7 20 37 / 0.08)),
+    url("/images/landing/map.jpg") center / cover no-repeat;
+}
+
+@media (max-width: 640px) {
+  .glm-hero-bg::before {
+    width: 100%;
+    opacity: 0.7;
+    background-position: 62% center;
+  }
+}
+
+/* Subtle motion: hover lifts + entrance fade. Disabled entirely when
+   the user prefers reduced motion. */
+.glm-lift {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.glm-lift:hover {
+  transform: translateY(-2px);
+}
+
+.glm-fade-up {
+  animation: glm-fade-up 560ms ease both;
+}
+.glm-fade-up-1 { animation-delay: 60ms; }
+.glm-fade-up-2 { animation-delay: 140ms; }
+.glm-fade-up-3 { animation-delay: 220ms; }
+
+@keyframes glm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glm-lift,
+  .glm-lift:hover {
+    transform: none;
+    transition: none;
+  }
+  .glm-fade-up,
+  .glm-fade-up-1,
+  .glm-fade-up-2,
+  .glm-fade-up-3 {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
