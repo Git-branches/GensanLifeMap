@@ -10,14 +10,14 @@ export default function MapLoading() {
       <SiteHeader />
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="flex min-h-0 flex-1 flex-col space-y-3 p-4 lg:w-[380px] lg:flex-none">
-          <Skeleton className="h-10 !rounded-lg" />
+          <Skeleton className="h-10 rounded-lg!" />
           <div className="flex gap-1.5">
             {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-8 w-20 !rounded-full" />
+              <Skeleton key={i} className="h-8 w-20 rounded-full!" />
             ))}
           </div>
           {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-14 !rounded-lg" />
+              <Skeleton key={i} className="h-14 rounded-lg!" />
           ))}
         </div>
         <div

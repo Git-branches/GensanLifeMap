@@ -5,6 +5,7 @@
  */
 
 import type { HTMLAttributes, ReactNode } from "react";
+import Image from "next/image";
 
 const CARD =
   "rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950";
@@ -31,13 +32,15 @@ export function CardEyebrow({ children }: { children: ReactNode }) {
 export function CardTitle({
   children,
   as: Tag = "h3",
+  className = "",
 }: {
   children: ReactNode;
   /** Listing pages render cards directly under the H1, so use "h2" there. */
   as?: "h2" | "h3";
+  className?: string;
 }) {
   return (
-    <Tag className="mt-1 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+    <Tag className={`mt-1 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50 ${className}`.trim()}>
       {children}
     </Tag>
   );
@@ -114,4 +117,66 @@ export function categoryTone(category: string | null | undefined): BadgeTone {
   if (/(commun|general|event|program|clean)/.test(c)) return "accent";
   if (/(cancel|close|expire)/.test(c)) return "neutral";
   return "neutral";
+}
+
+/** Card image component with lazy loading and proper aspect ratio */
+export function CardImage({
+  src,
+  alt,
+  aspectRatio = "16/9",
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  aspectRatio?: "16/9" | "4/3" | "1/1" | "21/9";
+  className?: string;
+}) {
+  const aspectClasses = {
+    "16/9": "aspect-video",
+    "4/3": "aspect-4/3",
+    "1/1": "aspect-square",
+    "21/9": "aspect-21/9",
+  };
+
+  return (
+    <div className={`relative overflow-hidden ${aspectClasses[aspectRatio]} ${className}`.trim()}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+        className="object-cover"
+      />
+    </div>
+  );
+}
+
+/** Card actions footer for buttons and links */
+export function CardActions({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`mt-4 flex items-center gap-2 ${className}`.trim()}>
+      {children}
+    </div>
+  );
+}
+
+/** Multiple badges in a row */
+export function CardBadgeGroup({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
+      {children}
+    </div>
+  );
 }

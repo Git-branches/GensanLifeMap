@@ -1,41 +1,31 @@
 /**
  * GenSan LifeMap — public landing page.
- *
- * Visual master: the landing-page mockup (design-workflow reference,
- * image.png at the repo root). Navy hero, at-a-glance stats, photo
- * explore cards, map split band, announcements, navy transparency
- * band, navy footer.
- *
- * Functional source of truth: the Laravel REST API via the shared
- * service layer (src/lib/api). Counts use paginator `meta.total`
- * (per_page: 1). No numbers, records, or announcements are hard-coded.
+ * Design reference: ui-mockup.png in design-workflow folder
  */
 
 import Image from "next/image";
 import Link from "next/link";
+import HomepageMap from "@/components/lifemap/homepage-map";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
 import {
   getAnnouncements,
-  getDataSources,
   getFacilities,
   getLocations,
   getProjects,
 } from "@/lib/api";
 import { buttonClasses } from "@/components/ui/button";
-import { Badge, Card, CardText, CardTitle, categoryTone } from "@/components/ui/card";
+import { Badge, categoryTone } from "@/components/ui/card";
 import {
   AnnounceIcon,
   ArrowRightIcon,
-  DatabaseIcon,
   DocIcon,
   FacilityIcon,
   MapIcon,
   PinIcon,
-  SearchIcon,
 } from "@/components/ui/icons";
 import { Container } from "@/components/ui/layout";
-import { EmptyState, ErrorState } from "@/components/ui/states";
+import { buildMapItems } from "@/lib/map-items";
 
 export const metadata = {
   title: "GenSan LifeMap — Explore General Santos",
@@ -56,78 +46,28 @@ function formatDate(iso: string | null): string | null {
   });
 }
 
-/* Category accent system shared by stats, cards, and map pins. */
-const CATEGORY = {
-  locations: {
-    dot: "bg-blue-600",
-    chip: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-    badge: "bg-blue-600",
-    photo: "glm-photo-location",
-  },
-  projects: {
-    dot: "bg-green-600",
-    chip: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
-    badge: "bg-green-600",
-    photo: "glm-photo-project",
-  },
-  facilities: {
-    dot: "bg-orange-500",
-    chip: "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
-    badge: "bg-orange-500",
-    photo: "glm-photo-facility",
-  },
-} as const;
-
 export default async function Home() {
-  const [loc, proj, fac, ann, src] = await Promise.allSettled([
-    getLocations({ per_page: 1 }, FETCH_OPTS),
-    getProjects({ per_page: 1 }, FETCH_OPTS),
-    getFacilities({ per_page: 1 }, FETCH_OPTS),
+  const [loc, proj, fac, ann] = await Promise.allSettled([
+    getLocations({ per_page: 50 }, FETCH_OPTS),
+    getProjects({ per_page: 50 }, FETCH_OPTS),
+    getFacilities({ per_page: 50 }, FETCH_OPTS),
     getAnnouncements({ per_page: 3 }, FETCH_OPTS),
-    getDataSources({ per_page: 1 }, FETCH_OPTS),
   ]);
 
-  const total = (r: PromiseSettledResult<{ meta: { total: number } }>): string =>
-    r.status === "fulfilled" ? String(r.value.meta.total) : "—";
-
   const announcements = ann.status === "fulfilled" ? ann.value.data : null;
-  const announcementsError = ann.status === "rejected";
-  const dataSourceTotal = total(src);
-
-  const stats = [
-    {
-      key: "locations" as const,
-      label: "Locations",
-      value: total(loc),
-      caption: "Total locations in the city",
-      href: "/locations",
-      icon: <PinIcon />,
-    },
-    {
-      key: "projects" as const,
-      label: "Projects",
-      value: total(proj),
-      caption: "Total public projects",
-      href: "/projects",
-      icon: <DocIcon />,
-    },
-    {
-      key: "facilities" as const,
-      label: "Facilities",
-      value: total(fac),
-      caption: "Total facilities",
-      href: "/facilities",
-      icon: <FacilityIcon />,
-    },
-  ];
+  const mapItems = buildMapItems(
+    loc.status === "fulfilled" ? loc.value.data : [],
+    proj.status === "fulfilled" ? proj.value.data : [],
+    fac.status === "fulfilled" ? fac.value.data : [],
+  ).items;
 
   return (
-    <div className="flex min-h-full flex-col bg-[#f4f7fb] font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-[#e8f1f5] font-sans">
       <SiteHeader />
 
       <main className="flex-1">
         {/* ============ HERO ============ */}
-        <section className="relative overflow-hidden bg-[#071425] text-white">
+        <section className="relative overflow-hidden bg-blue-700">
           <Image
             src="/images/landing/gensan.jpg"
             alt=""
@@ -138,402 +78,270 @@ export default async function Home() {
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-r from-[#071425] via-[#071425]/78 to-[#071425]/10"
+            className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"
           />
           <Container>
-            <div className="relative py-14 sm:py-20">
-              <div className="max-w-2xl">
-                <p className="glm-fade-up flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-sky-300">
-                  <span aria-hidden="true" className="inline-block h-0.5 w-8 bg-blue-500" />
+            <div className="relative py-24 sm:py-32 lg:py-40">
+              <div className="max-w-3xl">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-blue-200">
+                  <span aria-hidden="true" className="inline-block h-px w-10 bg-blue-300" />
                   GENERAL SANTOS CITY
                 </p>
-                <h1 className="glm-fade-up glm-fade-up-1 mt-4 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
+                <h1 className="mt-6 text-5xl font-bold leading-tight text-white sm:text-6xl lg:text-7xl">
                   Explore General Santos through one connected city map.
                 </h1>
-                <p className="glm-fade-up glm-fade-up-2 mt-4 max-w-xl text-base leading-relaxed text-slate-300">
-                  Discover places, public projects, facilities,
-                  announcements, and community information through one
-                  accessible platform.
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-blue-50 sm:text-xl">
+                  Discover places, public projects, facilities, announcements,
+                  and community information through one accessible platform.
                 </p>
-                <div className="glm-fade-up glm-fade-up-3 mt-7 flex flex-wrap gap-3">
-                  <Link href="/map" className={buttonClasses("primary")}>
+                <div className="mt-10 flex flex-wrap gap-4">
+                  <Link href="/map" className={buttonClasses("primary", "md")}>
                     <MapIcon />
                     Explore LifeMap
                     <ArrowRightIcon />
                   </Link>
                   <Link
-                    href="/projects"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    href="/about"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border-2 border-white bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
                   >
-                    Discover Projects
+                    Discover the City <ArrowRightIcon />
                   </Link>
+                </div>
+
+                <div className="mt-12 flex flex-wrap gap-8 text-sm text-blue-100">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Public information</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <PinIcon />
+                    <span>City map</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>Community resources</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="glm-fade-up glm-fade-up-2 mt-10 flex sm:justify-end">
-                <p className="inline-flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
-                  <span aria-hidden="true" className="text-sky-300">
-                    <PinIcon />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold text-white">
-                      General Santos City
-                    </span>
-                    <span className="block text-xs text-slate-300">
-                      A progressive city in Southern Mindanao
-                    </span>
-                  </span>
-                </p>
+              {/* Scroll indicator */}
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
+                <p className="mb-2 text-xs text-blue-200">Explore the city</p>
+                <svg className="mx-auto h-6 w-6 animate-bounce text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
               </div>
             </div>
           </Container>
         </section>
 
         {/* ============ AT A GLANCE ============ */}
-        <section aria-labelledby="glance-heading" className="glm-dot-grid bg-white dark:bg-zinc-950">
+        <section aria-labelledby="glance-heading" className="bg-white py-20 lg:py-28">
           <Container>
-            <div className="grid gap-8 py-12 lg:grid-cols-[240px_1fr] lg:py-14">
+            <div className="grid gap-16 lg:grid-cols-[400px_1fr] lg:gap-20">
               <div>
-                <h2 id="glance-heading" className="text-2xl font-bold tracking-tight text-[#0a1c30] dark:text-zinc-50">
-                  General Santos
-                  <br />
-                  at a Glance
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+                  <span aria-hidden="true" className="inline-block h-px w-10 bg-blue-600 align-middle mr-2" />
+                  GENERAL SANTOS
+                </p>
+                <h2 id="glance-heading" className="mt-4 text-4xl font-bold leading-tight text-gray-900 lg:text-5xl">
+                  At a Glance
                 </h2>
-                <span aria-hidden="true" className="mt-3 block h-0.5 w-10 bg-blue-600" />
-                <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Real-time public information for a more informed community.
+                <p className="mt-6 text-base leading-relaxed text-gray-600 lg:text-lg">
+                  A connected public information platform designed to help
+                  residents and visitors discover places, projects, facilities,
+                  and important city information.
                 </p>
               </div>
-              <dl className="grid grid-cols-2 gap-y-8 lg:grid-cols-4">
-                {stats.map((s, i) => (
-                  <div
-                    key={s.key}
-                    className={i > 0 ? "lg:border-l lg:border-zinc-200 lg:pl-8 lg:dark:border-zinc-800" : ""}
-                  >
-                    <Link href={s.href} className="group block" aria-label={`${s.label}: ${s.value}`}>
-                      <span
-                        aria-hidden="true"
-                        className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${CATEGORY[s.key].chip}`}
-                      >
-                        {s.icon}
-                      </span>
-                      <dt className="mt-3 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-                        {s.label}
-                      </dt>
-                      <dd className="text-4xl font-bold tracking-tight text-[#0a1c30] group-hover:text-blue-700 dark:text-zinc-50 dark:group-hover:text-blue-400">
-                        {s.value}
-                      </dd>
-                      <dd className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        {s.caption}
-                      </dd>
-                    </Link>
+
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <PinIcon />
                   </div>
-                ))}
-                <div className="lg:border-l lg:border-zinc-200 lg:pl-8 lg:dark:border-zinc-800">
-                  <Link href="/announcements" className="group block" aria-label={`Announcements: ${total(ann)}`}>
-                    <span
-                      aria-hidden="true"
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
-                    >
-                      <AnnounceIcon />
-                    </span>
-                    <dt className="mt-3 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-                      Announcements
-                    </dt>
-                    <dd className="text-4xl font-bold tracking-tight text-[#0a1c30] group-hover:text-blue-700 dark:text-zinc-50 dark:group-hover:text-blue-400">
-                      {total(ann)}
-                    </dd>
-                    <dd className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      Latest announcements
-                    </dd>
-                  </Link>
+                  <h3 className="mt-4 text-lg font-bold text-gray-900">Locations</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Parks, landmarks, and public spaces
+                  </p>
+                  <div className="mt-3 h-1 w-12 mx-auto rounded-full bg-blue-600" />
                 </div>
-              </dl>
+
+                <div className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <DocIcon />
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-gray-900">Projects</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Ongoing and completed city projects
+                  </p>
+                  <div className="mt-3 h-1 w-12 mx-auto rounded-full bg-green-600" />
+                </div>
+
+                <div className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                    <FacilityIcon />
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-gray-900">Facilities</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Government and public facilities
+                  </p>
+                  <div className="mt-3 h-1 w-12 mx-auto rounded-full bg-orange-600" />
+                </div>
+
+                <div className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                    <AnnounceIcon />
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-gray-900">Announcements</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Latest updates and public notices
+                  </p>
+                  <div className="mt-3 h-1 w-12 mx-auto rounded-full bg-purple-600" />
+                </div>
+              </div>
             </div>
           </Container>
         </section>
 
         {/* ============ EXPLORE ============ */}
-        <section aria-labelledby="explore-heading" className="bg-[#f4f7fb] dark:bg-black">
+        <section aria-labelledby="explore-heading" className="bg-[#e8f1f5] py-20 lg:py-28">
           <Container>
-            <div className="py-12 lg:py-14">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.2em] text-blue-700 dark:text-blue-400">
-                    EXPLORE
-                  </p>
-                  <h2 id="explore-heading" className="mt-1 text-2xl font-bold tracking-tight text-[#0a1c30] dark:text-zinc-50 sm:text-3xl">
-                    General Santos
-                  </h2>
-                  <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                    Find what you need, from places and projects to public
-                    facilities across the city.
-                  </p>
-                </div>
-                <Link
-                  href="/map"
-                  className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
-                >
-                  View All <ArrowRightIcon />
-                </Link>
-              </div>
+            <div className="mb-16 text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+                <span aria-hidden="true" className="inline-block h-px w-10 bg-blue-600 align-middle mr-2" />
+                EXPLORE GENERAL SANTOS
+              </p>
+              <h2 id="explore-heading" className="mt-4 text-4xl font-bold text-gray-900 lg:text-5xl">
+                Discover the City
+              </h2>
+            </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {(
-                  [
-                    {
-                      key: "locations" as const,
-                      title: "Locations",
-                      text: "Discover places and locations across General Santos City.",
-                      href: "/locations",
-                      count: `${total(loc)} locations`,
-                      icon: <PinIcon />,
-                      photo: "/images/landing/location.jpg",
-                      photoAlt: "",
-                    },
-                    {
-                      key: "projects" as const,
-                      title: "Projects",
-                      text: "Explore publicly listed projects and their current information.",
-                      href: "/projects",
-                      count: `${total(proj)} projects`,
-                      icon: <DocIcon />,
-                      photo: "/images/landing/project.jpg",
-                      photoAlt: "",
-                    },
-                    {
-                      key: "facilities" as const,
-                      title: "Facilities",
-                      text: "Find important public and community facilities.",
-                      href: "/facilities",
-                      count: `${total(fac)} facilities`,
-                      icon: <FacilityIcon />,
-                      photo: "/images/landing/facility.jpg",
-                      photoAlt: "",
-                    },
-                  ]
-                ).map((c, i) => (
-                  <article
-                    key={c.key}
-                    className={`glm-fade-up rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${
-                      i === 1 ? "glm-fade-up-1" : i === 2 ? "glm-fade-up-2" : ""
-                    }`}
-                  >
-                    <div aria-hidden="true" className="relative z-10 h-36 rounded-t-xl">
-                      <div className="absolute inset-0 overflow-hidden rounded-t-xl">
-                        <Image
-                          src={c.photo}
-                          alt={c.photoAlt}
-                          fill
-                          sizes="(min-width: 768px) 33vw, 100vw"
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
-                      </div>
-                      <span
-                        className={`absolute bottom-0 left-5 z-20 flex h-11 w-11 translate-y-1/2 items-center justify-center rounded-full text-white shadow-lg ring-4 ring-white dark:ring-zinc-950 ${CATEGORY[c.key].badge}`}
-                      >
-                        {c.icon}
-                      </span>
-                    </div>
-                    <div className="p-5 pt-7">
-                      <h3 className="text-base font-bold text-[#0a1c30] dark:text-zinc-50">
-                        {c.title}
-                      </h3>
-                      <p className="mt-1 min-h-10 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                        {c.text}
-                      </p>
-                      <p className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-sm dark:border-zinc-800">
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                          <strong className="font-semibold text-zinc-700 dark:text-zinc-200">
-                            {c.count.split(" ")[0]}
-                          </strong>{" "}
-                          {c.count.split(" ").slice(1).join(" ")}
-                        </span>
-                        <Link
-                          href={c.href}
-                          className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline dark:text-blue-400"
-                        >
-                          Explore <ArrowRightIcon />
-                        </Link>
-                      </p>
-                    </div>
-                  </article>
-                ))}
+            <div className="relative overflow-hidden rounded-3xl">
+              <Image
+                src="/images/landing/gensan.jpg"
+                alt="General Santos City"
+                width={1920}
+                height={800}
+                className="h-[500px] w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-8 text-white lg:p-12">
+                <h3 className="text-3xl font-bold lg:text-4xl">
+                  Explore locations, projects, and facilities
+                </h3>
+                <p className="mt-4 max-w-2xl text-lg text-white/90">
+                  Browse through our comprehensive database of city information
+                </p>
+                <Link
+                  href="/locations"
+                  className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-blue-200"
+                >
+                  View all locations <ArrowRightIcon />
+                </Link>
               </div>
             </div>
           </Container>
         </section>
 
-        {/* ============ MAP SPLIT BAND ============ */}
-        <section aria-labelledby="mapband-heading" className="bg-white dark:bg-zinc-950">
-          <div className="mx-auto grid max-w-6xl gap-0 px-4 py-12 lg:grid-cols-2 lg:py-14">
-            <Link
-              href="/map"
-              aria-label="Open the interactive LifeMap"
-              className="group relative block min-h-64 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 lg:min-h-80 lg:rounded-r-none"
-            >
-              <Image
-                src="/images/landing/map.jpg"
-                alt=""
-                aria-hidden="true"
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              />
-              <span className="absolute inset-0 ring-1 ring-inset ring-black/10" aria-hidden="true" />
-            </Link>
-
-            <div className="flex flex-col justify-center rounded-xl border border-zinc-200 bg-[#f4f7fb] p-6 dark:border-zinc-800 dark:bg-zinc-900 sm:p-8 lg:rounded-l-none lg:border-l-0">
-              <h2 id="mapband-heading" className="text-2xl font-bold tracking-tight text-[#0a1c30] dark:text-zinc-50">
+        {/* ============ MAP ============ */}
+        <section aria-labelledby="map-heading" className="bg-white py-20 lg:py-28">
+          <Container>
+            <div className="mb-12 text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+                <span aria-hidden="true" className="inline-block h-px w-10 bg-blue-600 align-middle mr-2" />
+                INTERACTIVE MAP
+              </p>
+              <h2 id="map-heading" className="mt-4 text-4xl font-bold text-gray-900 lg:text-5xl">
                 Your City, On One Map
               </h2>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Explore General Santos City through an interactive map.
-                Search, filter, and discover locations, public projects,
-                facilities and more.
+              <p className="mt-6 text-lg text-gray-600">
+                Explore General Santos through one connected geographic platform
               </p>
-              <p className="mt-5">
-                <Link href="/map" className={buttonClasses("primary")}>
-                  Open LifeMap <ArrowRightIcon />
-                </Link>
-              </p>
-              <ul className="mt-6 grid grid-cols-3 gap-2">
-                {[
-                  { icon: <SearchIcon />, label: "Search & Filter" },
-                  { icon: <DocIcon />, label: "View Details" },
-                  { icon: <MapIcon />, label: "Explore the City" },
-                ].map((f) => (
-                  <li key={f.label} className="text-center">
-                    <span
-                      aria-hidden="true"
-                      className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                    >
-                      {f.icon}
-                    </span>
-                    <span className="mt-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                      {f.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
-          </div>
+
+            <div className="overflow-hidden rounded-3xl shadow-2xl">
+              <HomepageMap items={mapItems} />
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link href="/map" className={buttonClasses("primary", "md")}>
+                Open LifeMap <ArrowRightIcon />
+              </Link>
+            </div>
+          </Container>
         </section>
 
         {/* ============ ANNOUNCEMENTS ============ */}
-        <section aria-labelledby="ann-heading" className="bg-[#f4f7fb] dark:bg-black">
-          <Container>
-            <div className="grid gap-6 py-12 lg:grid-cols-[260px_1fr] lg:py-14">
-              <div>
-                <h2 id="ann-heading" className="text-2xl font-bold leading-tight tracking-tight text-[#0a1c30] dark:text-zinc-50">
-                  Latest
-                  <br />
+        {announcements && announcements.length > 0 && (
+          <section aria-labelledby="ann-heading" className="bg-[#e8f1f5] py-20 lg:py-28">
+            <Container>
+              <div className="mb-12 text-center">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+                  <span aria-hidden="true" className="inline-block h-px w-10 bg-blue-600 align-middle mr-2" />
+                  LATEST UPDATES
+                </p>
+                <h2 id="ann-heading" className="mt-4 text-4xl font-bold text-gray-900 lg:text-5xl">
                   Announcements
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Stay informed with the latest updates and public notices
-                  from General Santos City.
-                </p>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-3">
+                {announcements.map((a) => {
+                  const date = formatDate(a.published_at ?? a.created_at);
+                  return (
+                    <article key={a.id} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
+                      <Badge tone={categoryTone(a.category)}>
+                        {a.category.replace(/_/g, " ").toUpperCase()}
+                      </Badge>
+                      <h3 className="mt-4 text-xl font-bold text-gray-900">{a.title}</h3>
+                      {date && <p className="mt-2 text-sm text-gray-500">{date}</p>}
+                      {a.content && (
+                        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-gray-600">
+                          {a.content}
+                        </p>
+                      )}
+                      <Link
+                        href="/announcements"
+                        className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
+                      >
+                        Read more <ArrowRightIcon />
+                      </Link>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div className="mt-10 text-center">
                 <Link
                   href="/announcements"
-                  className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-blue-600 px-4 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-950"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
                 >
-                  View All Announcements <ArrowRightIcon />
+                  View all announcements <ArrowRightIcon />
                 </Link>
               </div>
+            </Container>
+          </section>
+        )}
 
-              <div>
-                {announcementsError && (
-                  <ErrorState message="Announcements couldn't be loaded right now. Please try again later." />
-                )}
-                {announcements && announcements.length === 0 && !announcementsError && (
-                  <EmptyState title="No announcements have been published yet." />
-                )}
-                {announcements && announcements.length > 0 && (
-                  <ul className="grid gap-4 md:grid-cols-3">
-                    {announcements.map((a) => {
-                      const date = formatDate(a.published_at ?? a.created_at);
-                      return (
-                        <li key={a.id} className="flex">
-                          <Card className="glm-lift flex w-full flex-col">
-                            <Badge tone={categoryTone(a.category)}>
-                              {a.category.replace(/_/g, " ").toUpperCase()}
-                            </Badge>
-                            <CardTitle>{a.title}</CardTitle>
-                            {date && (
-                              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                {date}
-                              </p>
-                            )}
-                            {a.content && (
-                              <CardText className="line-clamp-2 flex-1">
-                                {a.content}
-                              </CardText>
-                            )}
-                            <Link
-                              href="/announcements"
-                              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
-                            >
-                              Read more <ArrowRightIcon />
-                            </Link>
-                          </Card>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </Container>
-        </section>
-
-        {/* ============ TRANSPARENCY ============ */}
-        <section aria-labelledby="transparency-heading" className="glm-hero-bg text-white">
+        {/* ============ CTA ============ */}
+        <section className="bg-blue-600 py-16 text-white lg:py-20">
           <Container>
-            <div className="grid items-center gap-8 py-12 lg:grid-cols-[300px_1fr] lg:py-14">
-              <div>
-                <p className="text-xs font-semibold tracking-[0.2em] text-sky-300">
-                  TRANSPARENCY
-                </p>
-                <h2 id="transparency-heading" className="mt-2 text-2xl font-bold tracking-tight">
-                  Information You Can Trace
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                  Discover reliable information about public projects,
-                  locations, facilities, announcements and the sources
-                  behind the data.
-                </p>
-                <Link
-                  href="/data-sources"
-                  className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/40 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                >
-                  Explore Data Sources <ArrowRightIcon />
-                </Link>
-              </div>
-              <ul className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-                {[
-                  { icon: <DocIcon />, bg: "bg-green-600", label: "Projects", caption: "Public projects and current information", href: "/projects" },
-                  { icon: <PinIcon />, bg: "bg-blue-600", label: "Locations", caption: "Places and key city locations", href: "/locations" },
-                  { icon: <FacilityIcon />, bg: "bg-purple-600", label: "Facilities", caption: "Public and community facilities", href: "/facilities" },
-                  { icon: <AnnounceIcon />, bg: "bg-orange-500", label: "Announcements", caption: "Latest updates and notices", href: "/announcements" },
-                  { icon: <DatabaseIcon />, bg: "bg-slate-500", label: "Data Sources", caption: `Where the information comes from (${dataSourceTotal})`, href: "/data-sources" },
-                ].map((t) => (
-                  <li key={t.label} className="text-center">
-                    <Link href={t.href} className="group block" aria-label={`${t.label} — ${t.caption}`}>
-                      <span aria-hidden="true" className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${t.bg} text-white shadow-lg transition-transform group-hover:scale-105`}>
-                        {t.icon}
-                      </span>
-                      <span className="mt-2 block text-sm font-semibold text-white">
-                        {t.label}
-                      </span>
-                      <span className="mt-0.5 block text-[11px] leading-snug text-slate-400">
-                        {t.caption}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="text-center">
+              <h2 className="text-3xl font-bold lg:text-4xl">
+                Explore General Santos
+              </h2>
+              <p className="mt-4 text-lg text-blue-100">
+                Discover the city through one connected map
+              </p>
+              <Link href="/map" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-base font-semibold text-blue-600 transition-all hover:bg-blue-50">
+                <MapIcon />
+                Explore LifeMap
+                <ArrowRightIcon />
+              </Link>
             </div>
           </Container>
         </section>

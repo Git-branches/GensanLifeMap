@@ -4,3 +4,4 @@ export type { Project } from "./project";
 export type { Facility } from "./facility";
 export type { Announcement } from "./announcement";
 export type { DataSource } from "./data-source";
+export type { AuthSession, AuthStatus, AuthUser } from "./user";

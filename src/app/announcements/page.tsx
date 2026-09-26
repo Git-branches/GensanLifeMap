@@ -1,6 +1,9 @@
+import Link from "next/link";
 import CollectionPage from "@/components/collection-page";
 import { getAnnouncements, getFriendlyErrorMessage } from "@/lib/api";
-import { Card, CardEyebrow, CardMeta, CardText, CardTitle } from "@/components/ui/card";
+import { Card, CardEyebrow, CardMeta, CardText, CardTitle, CardActions, categoryTone, Badge } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { ArrowRightIcon, AnnounceIcon } from "@/components/ui/icons";
 
 function formatDate(iso: string | null): string | null {
   if (!iso) return null;
@@ -11,6 +14,19 @@ function formatDate(iso: string | null): string | null {
     month: "short",
     day: "numeric",
   });
+}
+
+function isExpiringSoon(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  const expiry = new Date(expiresAt);
+  const now = new Date();
+  const daysUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  return daysUntilExpiry > 0 && daysUntilExpiry <= 7;
+}
+
+function isExpired(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  return new Date(expiresAt) < new Date();
 }
 
 /** Public listing of published announcements. */
@@ -33,7 +49,7 @@ export default async function AnnouncementsPage() {
   return (
     <CollectionPage
       title="Announcements"
-      description="Community announcements and public information. Each announcement is linked to its information source. "
+      description="Community announcements and public information. Each announcement is linked to its information source for transparency and verification."
       total={data ? data.meta.total : null}
       totalLabel="Public information"
       error={error}
@@ -42,21 +58,70 @@ export default async function AnnouncementsPage() {
     >
       {items.map((a) => {
         const date = formatDate(a.published_at ?? a.created_at);
+        const expiryDate = formatDate(a.expires_at);
+        const expired = isExpired(a.expires_at);
+        const expiringSoon = isExpiringSoon(a.expires_at);
+
         return (
-          <Card key={a.id} className="flex flex-col">
-            <CardEyebrow>
-              {a.category}
-              {date ? ` · ${date}` : ""}
-            </CardEyebrow>
-            <CardTitle as="h2">{a.title}</CardTitle>
+          <Card
+            key={a.id}
+            className={`flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${
+              expired ? "opacity-60" : ""
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                  <AnnounceIcon />
+                </div>
+                <Badge tone={categoryTone(a.category)}>
+                  {a.category.replace(/_/g, " ").toUpperCase()}
+                </Badge>
+                {expired && (
+                  <StatusBadge variant="neutral">Expired</StatusBadge>
+                )}
+                {expiringSoon && !expired && (
+                  <StatusBadge variant="warning">Expiring Soon</StatusBadge>
+                )}
+              </div>
+              {date && (
+                <time className="shrink-0 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  {date}
+                </time>
+              )}
+            </div>
+
+            <CardTitle as="h2" className="mt-3">
+              {a.title}
+            </CardTitle>
+
             {a.content && (
-              <CardText className="line-clamp-4 flex-1">{a.content}</CardText>
+              <CardText className="line-clamp-4 flex-1 mt-2">
+                {a.content}
+              </CardText>
             )}
-            {a.source && (
-              <CardMeta>
-                <span className="mt-3 block">Source: {a.source.name}</span>
-              </CardMeta>
-            )}
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+              {a.source && (
+                <span className="font-medium">
+                  Source: {a.source.name}
+                </span>
+              )}
+              {expiryDate && !expired && (
+                <span>
+                  Valid until: {expiryDate}
+                </span>
+              )}
+            </div>
+
+            <CardActions className="mt-4">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Read More <ArrowRightIcon />
+              </button>
+            </CardActions>
           </Card>
         );
       })}

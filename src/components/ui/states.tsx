@@ -24,7 +24,7 @@ export function PageSkeleton({ cards = 3 }: { cards?: number }) {
       <Skeleton className="mt-3 h-5 w-1/2" />
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: cards }).map((_, i) => (
-          <Skeleton key={i} className="h-32 !rounded-xl" />
+            <Skeleton key={i} className="h-32 rounded-xl!" />
         ))}
       </div>
     </div>

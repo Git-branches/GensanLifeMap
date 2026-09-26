@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./auth-provider";
 import { buttonClasses } from "./ui/button";
 import { ChevronDownIcon, CloseIcon, MenuIcon, SearchIcon } from "./ui/icons";
 
@@ -44,12 +45,59 @@ const NAV_GROUPS: NavGroup[] = [
  */
 export default function SiteHeader() {
   const pathname = usePathname();
+  // Keyed by route: menu/account state resets on every navigation, so a
+  // fresh sign-in (or back/forward travel) can never show stale UI —
+  // without syncing state inside an effect.
+  return <HeaderChrome key={pathname} pathname={pathname} />;
+}
+
+function HeaderChrome({ pathname }: { pathname: string }) {
+  const router = useRouter();
+  const { status, user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  // Close the account menu on outside click or Escape.
+  useEffect(() => {
+    if (!accountOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAccountOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [accountOpen]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
   const groupActive = (group: NavGroup) =>
     group.links.some((l) => isActive(l.href));
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+    setAccountOpen(false);
+    setOpen(false);
+    router.push("/");
+    router.refresh();
+  };
+
+  const accountLabel = status === "authenticated" && user ? user.name : "Account";
+  const initial = (user?.name.trim().charAt(0) ?? "?").toUpperCase();
 
   const topLink =
     "flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors " +
@@ -131,6 +179,66 @@ export default function SiteHeader() {
           >
             <SearchIcon />
           </Link>
+          {status === "authenticated" && user ? (
+            <div ref={accountRef} className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setAccountOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={accountOpen}
+                aria-label={`Account menu for ${accountLabel}`}
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
+                >
+                  {initial}
+                </span>
+                <span className="max-w-24 truncate">{user.name.split(" ")[0]}</span>
+                <ChevronDownIcon />
+              </button>
+              {accountOpen && (
+                <ul
+                  role="menu"
+                  className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0e2540] p-1.5 shadow-xl"
+                >
+                  <li role="none">
+                    <Link
+                      role="menuitem"
+                      href="/profile"
+                      className="block rounded-lg px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      Profile
+                    </Link>
+                  </li>
+                  <li role="none">
+                    <button
+                      role="menuitem"
+                      type="button"
+                      disabled={signingOut}
+                      onClick={handleSignOut}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+                    >
+                      {signingOut ? "Signing out…" : "Sign out"}
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
+          ) : status === "unauthenticated" ? (
+            <Link
+              href="/login"
+              className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white sm:inline-block"
+            >
+              Sign in
+            </Link>
+          ) : (
+            <span
+              aria-hidden="true"
+              className="hidden h-7 w-16 animate-pulse rounded-full bg-white/10 sm:inline-block"
+            />
+          )}
           <Link
             href="/map"
             className={`${buttonClasses("primary", "sm")} hidden sm:inline-flex`}
@@ -190,6 +298,41 @@ export default function SiteHeader() {
               >
                 Explore LifeMap
               </Link>
+            </li>
+            <li className="pt-1">
+              {status === "authenticated" && user ? (
+                <div className="rounded-2xl bg-white/5 p-3">
+                  <p className="px-1 text-sm font-medium text-white">
+                    {user.name}
+                  </p>
+                  <p className="px-1 text-xs text-slate-400">{user.email}</p>
+                  <div className="mt-2 flex gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex-1 rounded-full bg-white/10 px-4 py-2 text-center text-sm font-medium text-white"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={signingOut}
+                      onClick={handleSignOut}
+                      className="flex-1 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {signingOut ? "…" : "Sign out"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="block rounded-full border border-white/25 px-4 py-2.5 text-center text-base font-medium text-white"
+                >
+                  Sign in
+                </Link>
+              )}
             </li>
           </ul>
         </nav>

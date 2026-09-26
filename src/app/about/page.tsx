@@ -72,18 +72,18 @@ export default function AboutPage() {
           >
             <div className="grid gap-3 sm:grid-cols-2">
               {COVERAGE.map((c) => (
-                <Card key={c.title} className="flex flex-col">
+                <Card key={c.title} className="flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
                   <span
                     aria-hidden="true"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition-colors duration-200 group-hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:group-hover:bg-blue-900"
                   >
                     {c.icon}
                   </span>
-                  <CardTitle>{c.title}</CardTitle>
+                  <CardTitle className="mt-3">{c.title}</CardTitle>
                   <CardText className="flex-1">{c.text}</CardText>
                   <Link
                     href={c.href}
-                    className="mt-3 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                    className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Browse {c.title.toLowerCase()} →
                   </Link>
@@ -98,7 +98,7 @@ export default function AboutPage() {
             description="Announcements and records are linked to tracked information sources, so you can see the origin of what you read. Listings show what is currently tracked — not a claim of complete government records."
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <Card className="flex items-start gap-3">
+              <Card className="flex items-start gap-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
                 <span
                   aria-hidden="true"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -113,13 +113,13 @@ export default function AboutPage() {
                   </CardText>
                   <Link
                     href="/data-sources"
-                    className="mt-3 inline-block text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     View Data Sources →
                   </Link>
                 </div>
               </Card>
-              <Card className="flex items-start gap-3">
+              <Card className="flex items-start gap-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
                 <span
                   aria-hidden="true"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
@@ -134,7 +134,7 @@ export default function AboutPage() {
                   </CardText>
                   <Link
                     href="/map"
-                    className="mt-3 inline-block text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Open LifeMap →
                   </Link>

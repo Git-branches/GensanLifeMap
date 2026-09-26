@@ -6,15 +6,22 @@
  *   boot without env config; do NOT hard-code URLs in components — import
  *   from here or the resource modules in this folder instead.
  * - Works in both Server Components and Client Components (plain fetch).
+ * - In the browser, the stored Sanctum Bearer token (if any) is attached
+ *   automatically; public endpoints ignore it. Pass `auth: false` to
+ *   suppress the header for a single call.
  * - Never exposes raw server payloads: errors are normalized to ApiError
  *   with user-friendly messages.
  */
+
+import { getAuthToken } from "../auth-token";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 export type ApiErrorCode =
   | "NETWORK_ERROR"
+  | "UNAUTHENTICATED"
+  | "FORBIDDEN"
   | "NOT_FOUND"
   | "VALIDATION_ERROR"
   | "SERVER_ERROR"
@@ -89,6 +96,10 @@ export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   query?: Record<string, QueryValue>;
   /** Override the revalidation window for Server Component fetches. */
   revalidate?: number;
+  /** Set false to skip the automatic Bearer token header. Default true. */
+  auth?: boolean;
+  /** Request payload (JSON-stringified by callers). */
+  body?: string;
 }
 
 /**
@@ -98,14 +109,23 @@ export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<T> {
-  const { query, revalidate, ...init } = options;
+  const { query, revalidate, auth = true, ...init } = options;
   const url = buildUrl(path, query);
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(init.headers as Record<string, string> | undefined),
+  };
+  if (auth) {
+    const token = getAuthToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
 
   let response: Response;
   try {
     response = await fetch(url, {
       ...init,
-      headers: { Accept: "application/json", ...init.headers },
+      headers,
       ...(typeof revalidate === "number" ? { next: { revalidate } } : {}),
     });
   } catch {
@@ -141,13 +161,17 @@ export async function apiFetch<T>(
   throw new ApiError(toUserMessage(status, body), {
     status,
     code:
-      status === 404
-        ? "NOT_FOUND"
-        : status === 422
-          ? "VALIDATION_ERROR"
-          : status >= 500
-            ? "SERVER_ERROR"
-            : "UNEXPECTED_ERROR",
+      status === 401
+        ? "UNAUTHENTICATED"
+        : status === 403
+          ? "FORBIDDEN"
+          : status === 404
+            ? "NOT_FOUND"
+            : status === 422
+              ? "VALIDATION_ERROR"
+              : status >= 500
+                ? "SERVER_ERROR"
+                : "UNEXPECTED_ERROR",
     validationErrors: status === 422 ? (body?.errors ?? null) : null,
   });
 }
