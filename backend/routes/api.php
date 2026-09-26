@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnnouncementController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CommunityReportController;
 use App\Http\Controllers\Api\DataSourceController;
 use App\Http\Controllers\Api\FacilityController;
@@ -21,6 +22,20 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('throttle:60,1')->group(function (): void {
+    // Authentication (public, additionally rate-limited against abuse)
+    Route::middleware('throttle:10,1')->group(function (): void {
+        Route::post('register', [AuthController::class, 'register']);
+        Route::post('login', [AuthController::class, 'login']);
+    });
+
+    // Authenticated account surface — Laravel enforces the session/token.
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('user', [AuthController::class, 'user']);
+        Route::put('user/profile', [AuthController::class, 'updateProfile']);
+        Route::put('user/password', [AuthController::class, 'changePassword']);
+    });
+
     // Locations
     Route::get('locations', [LocationController::class, 'index']);
     Route::get('locations/{location}', [LocationController::class, 'show']);

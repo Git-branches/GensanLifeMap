@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,15 +16,27 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // JSON-only API surface (see middleware): guests get JSON 401s,
+        // never redirects to a web login route that does not exist.
+        $middleware->api(prepend: [
+            \App\Http\Middleware\ForceJsonResponse::class,
+        ]);
         $middleware->alias([
             // Placeholder: denies with 401 until real admin auth lands next phase.
             'auth.required' => \App\Http\Middleware\RequireAuthentication::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Consistent JSON 404s for API consumers; never leak internals.
-        $exceptions->render(function (ModelNotFoundException $e, $request) {
+        // Guests always get JSON 401 on API routes, even without an
+        // Accept header (otherwise Laravel would redirect to a login
+        // route that does not exist for this API-only surface).
+        $exceptions->render(function (AuthenticationException $e, $request) {
             if ($request->is('api/*')) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+        });
+        // Consistent JSON 404s for API consumers; never leak internals.
+        $exceptions->render(function (ModelNotFoundException $e, $request) {            if ($request->is('api/*')) {
                 return response()->json(['message' => 'Resource not found.'], 404);
             }
         });
