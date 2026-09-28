@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { AuthField, AuthInput, PasswordInput, firstError } from "@/components/auth-fields";
 import AuthShell from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider";
@@ -36,8 +36,11 @@ export default function RegisterPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (status === "authenticated") router.replace("/profile");
+  }, [status, router]);
+
   if (status === "authenticated") {
-    router.replace("/profile");
     return (
       <AuthShell
         eyebrow="Create account"

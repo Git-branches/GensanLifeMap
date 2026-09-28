@@ -2,341 +2,80 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "./auth-provider";
+import ThemeToggle from "@/components/theme-toggle";
 import { buttonClasses } from "./ui/button";
-import { ChevronDownIcon, CloseIcon, MenuIcon, SearchIcon } from "./ui/icons";
+import { CloseIcon, MenuIcon, SearchIcon } from "./ui/icons";
 
-interface NavGroup {
-  label: string;
-  links: { href: string; label: string }[];
-}
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Explore",
-    links: [
-      { href: "/map", label: "LifeMap" },
-      { href: "/locations", label: "Locations" },
-      { href: "/facilities", label: "Facilities" },
-    ],
-  },
-  {
-    label: "Discover",
-    links: [
-      { href: "/projects", label: "Projects" },
-      { href: "/announcements", label: "Announcements" },
-    ],
-  },
-  {
-    label: "About",
-    links: [
-      { href: "/about", label: "About" },
-      { href: "/data-sources", label: "Data Sources" },
-    ],
-  },
+const LINKS = [
+  { href: "/lifemap", label: "Explore" },
+  { href: "/locations", label: "Locations" },
+  { href: "/projects", label: "Projects" },
+  { href: "/facilities", label: "Facilities" },
+  { href: "/announcements", label: "Announcements" },
+  { href: "/about", label: "About" },
 ];
 
-/**
- * Public site header (mockup master): deep-navy bar with the GenSan
- * LifeMap emblem, grouped dropdown navigation, search shortcut, and
- * the blue "Explore LifeMap" CTA. Dropdowns open on hover AND on
- * keyboard focus (focus-within), so they stay keyboard-accessible.
- */
 export default function SiteHeader() {
   const pathname = usePathname();
-  // Keyed by route: menu/account state resets on every navigation, so a
-  // fresh sign-in (or back/forward travel) can never show stale UI —
-  // without syncing state inside an effect.
-  return <HeaderChrome key={pathname} pathname={pathname} />;
-}
-
-function HeaderChrome({ pathname }: { pathname: string }) {
   const router = useRouter();
   const { status, user, signOut } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const accountRef = useRef<HTMLDivElement>(null);
 
-  // Close the account menu on outside click or Escape.
-  useEffect(() => {
-    if (!accountOpen) return;
-    const onPointer = (e: PointerEvent) => {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setAccountOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAccountOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [accountOpen]);
+  if (pathname.startsWith("/admin")) return null;
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
-  const groupActive = (group: NavGroup) =>
-    group.links.some((l) => isActive(l.href));
-
-  const handleSignOut = async () => {
+  async function handleSignOut() {
     setSigningOut(true);
     try {
       await signOut();
     } finally {
       setSigningOut(false);
+      setMenuOpen(false);
+      router.push("/");
+      router.refresh();
     }
-    setAccountOpen(false);
-    setOpen(false);
-    router.push("/");
-    router.refresh();
-  };
+  }
 
-  const accountLabel = status === "authenticated" && user ? user.name : "Account";
-  const initial = (user?.name.trim().charAt(0) ?? "?").toUpperCase();
+  const linkClass = (href: string) =>
+    `rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${pathname === href || pathname.startsWith(`${href}/`) ? "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"}`;
 
-  const topLink =
-    "flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors " +
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+  // The theme toggle lives only inside the authenticated user scope:
+  // public pages render without a theme provider, so nothing shows there.
+  const showThemeToggle = status === "authenticated" && user !== null;
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-[#0a1c30]/95 text-white shadow-lg backdrop-blur">
+    <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200 bg-white/95 text-slate-800 shadow-sm backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-200">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="GenSan LifeMap home">
-          <span
-            aria-hidden="true"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-700 text-white shadow"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path
-                d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              />
-              <circle cx="10" cy="7.5" r="2" fill="currentColor" />
-            </svg>
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="GenSan LifeMap home">
+          <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="7.5" r="2" fill="currentColor"/></svg>
           </span>
-          <span className="leading-tight">
-            <span className="block text-base font-bold tracking-wide">
-              GENSAN
-            </span>
-            <span className="block text-[11px] font-semibold tracking-[0.18em] text-sky-300">
-              LIFE MAP
-            </span>
-            <span className="block text-[9px] tracking-[0.14em] text-slate-400">
-              GENERAL SANTOS CITY
-            </span>
-          </span>
+          <span className="leading-tight"><span className="block text-sm font-bold tracking-wide text-slate-900 dark:text-slate-100">GENSAN</span><span className="block text-[10px] font-semibold tracking-[0.18em] text-blue-700 dark:text-blue-400">LIFE MAP</span></span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label} className="group relative">
-              <button
-                type="button"
-                aria-haspopup="true"
-                className={`${topLink} ${
-                  groupActive(group)
-                    ? "bg-white/15 text-white"
-                    : "text-slate-200 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {group.label}
-                <ChevronDownIcon />
-              </button>
-              <div className="invisible absolute left-0 top-full pt-2 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <ul className="w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0e2540] p-1.5 shadow-xl">
-                  {group.links.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        aria-current={isActive(item.href) ? "page" : undefined}
-                        className={`block rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
-                          isActive(item.href)
-                            ? "bg-blue-600 font-medium text-white"
-                            : "text-slate-200 hover:bg-white/10 hover:text-white"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))}
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
+          {LINKS.map((item) => <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined} className={linkClass(item.href)}>{item.label}</Link>)}
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/map"
-            aria-label="Search the LifeMap"
-            className="rounded-full p-2 text-slate-200 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-          >
-            <SearchIcon />
-          </Link>
+          {showThemeToggle && <ThemeToggle compact />}
+          <Link href="/lifemap" aria-label="Search the LifeMap" className="rounded-full p-2 text-slate-600 hover:bg-slate-100 hover:text-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"><SearchIcon /></Link>
           {status === "authenticated" && user ? (
-            <div ref={accountRef} className="relative hidden sm:block">
-              <button
-                type="button"
-                onClick={() => setAccountOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={accountOpen}
-                aria-label={`Account menu for ${accountLabel}`}
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
-                >
-                  {initial}
-                </span>
-                <span className="max-w-24 truncate">{user.name.split(" ")[0]}</span>
-                <ChevronDownIcon />
-              </button>
-              {accountOpen && (
-                <ul
-                  role="menu"
-                  className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-xl border border-white/10 bg-[#0e2540] p-1.5 shadow-xl"
-                >
-                  <li role="none">
-                    <Link
-                      role="menuitem"
-                      href="/profile"
-                      className="block rounded-lg px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
-                    >
-                      Profile
-                    </Link>
-                  </li>
-                  <li role="none">
-                    <button
-                      role="menuitem"
-                      type="button"
-                      disabled={signingOut}
-                      onClick={handleSignOut}
-                      className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
-                    >
-                      {signingOut ? "Signing out…" : "Sign out"}
-                    </button>
-                  </li>
-                </ul>
-              )}
+            <div className="hidden items-center gap-2 sm:flex">
+              <Link href="/reports" className="rounded-full px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">My reports</Link>
+              {(user.role === "admin" || user.role === "moderator") && <Link href="/admin" className="rounded-full px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800">Management</Link>}
+              <Link href="/profile" className="max-w-32 truncate rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">{user.name.split(" ")[0]}</Link>
+              <button type="button" onClick={() => void handleSignOut()} disabled={signingOut} className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800">{signingOut ? "Signing outâ€¦" : "Sign out"}</button>
             </div>
-          ) : status === "unauthenticated" ? (
-            <Link
-              href="/login"
-              className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white sm:inline-block"
-            >
-              Sign in
-            </Link>
-          ) : (
-            <span
-              aria-hidden="true"
-              className="hidden h-7 w-16 animate-pulse rounded-full bg-white/10 sm:inline-block"
-            />
-          )}
-          <Link
-            href="/map"
-            className={`${buttonClasses("primary", "sm")} hidden sm:inline-flex`}
-          >
-            Explore LifeMap
-          </Link>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-            className="rounded-lg p-2 text-slate-200 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 lg:hidden"
-          >
-            {open ? <CloseIcon /> : <MenuIcon />}
-          </button>
+          ) : status === "unauthenticated" ? <Link href="/login" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex dark:text-slate-200 dark:hover:bg-slate-800">Sign in</Link> : null}
+          <Link href="/lifemap" className={`${buttonClasses("primary", "sm")} hidden sm:inline-flex`}>Explore LifeMap</Link>
+          <button type="button" onClick={() => setMenuOpen((value) => !value)} aria-expanded={menuOpen} aria-controls="mobile-nav" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 lg:hidden dark:text-slate-300 dark:hover:bg-slate-800">{menuOpen ? <CloseIcon /> : <MenuIcon />}</button>
         </div>
       </div>
 
-      {open && (
-        <nav
-          id="mobile-nav"
-          aria-label="Mobile"
-          className="border-t border-white/10 bg-[#0a1c30] px-4 py-3 lg:hidden"
-        >
-          <ul className="flex flex-col gap-3">
-            {NAV_GROUPS.map((group) => (
-              <li key={group.label}>
-                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  {group.label}
-                </p>
-                <ul className="mt-1 flex flex-col gap-0.5">
-                  {group.links.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        aria-current={isActive(item.href) ? "page" : undefined}
-                        className={`block rounded-lg px-3 py-2.5 text-base font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
-                          isActive(item.href)
-                            ? "bg-white/15 text-white"
-                            : "text-slate-200"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-            <li className="pt-1">
-              <Link
-                href="/map"
-                onClick={() => setOpen(false)}
-                className="block rounded-full bg-blue-600 px-4 py-2.5 text-center text-base font-medium text-white"
-              >
-                Explore LifeMap
-              </Link>
-            </li>
-            <li className="pt-1">
-              {status === "authenticated" && user ? (
-                <div className="rounded-2xl bg-white/5 p-3">
-                  <p className="px-1 text-sm font-medium text-white">
-                    {user.name}
-                  </p>
-                  <p className="px-1 text-xs text-slate-400">{user.email}</p>
-                  <div className="mt-2 flex gap-2">
-                    <Link
-                      href="/profile"
-                      onClick={() => setOpen(false)}
-                      className="flex-1 rounded-full bg-white/10 px-4 py-2 text-center text-sm font-medium text-white"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      type="button"
-                      disabled={signingOut}
-                      onClick={handleSignOut}
-                      className="flex-1 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-                    >
-                      {signingOut ? "…" : "Sign out"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="block rounded-full border border-white/25 px-4 py-2.5 text-center text-base font-medium text-white"
-                >
-                  Sign in
-                </Link>
-              )}
-            </li>
-          </ul>
-        </nav>
-      )}
+      {menuOpen && <nav id="mobile-nav" aria-label="Mobile" className="border-t border-slate-200 bg-white px-4 py-3 shadow-lg dark:border-slate-800 dark:bg-slate-950 lg:hidden"><ul className="mx-auto flex max-w-6xl flex-col gap-1">{LINKS.map((item) => <li key={item.href}><Link href={item.href} onClick={() => setMenuOpen(false)} aria-current={pathname === item.href ? "page" : undefined} className="block min-h-11 rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-slate-900">{item.label}</Link></li>)}<li className="mt-1"><Link href="/lifemap" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-full bg-blue-700 px-4 py-2.5 text-center text-base font-semibold text-white">Explore LifeMap</Link></li>{status === "authenticated" && user ? <><li><Link href="/reports" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-lg px-3 py-2.5 font-medium text-slate-700 dark:text-slate-200">My reports</Link></li>{(user.role === "admin" || user.role === "moderator") && <li><Link href="/admin" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-lg px-3 py-2.5 font-semibold text-blue-800 dark:text-blue-300">Management workspace</Link></li>}<li><Link href="/profile" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-lg px-3 py-2.5 font-medium text-slate-700 dark:text-slate-200">Profile Â· {user.name}</Link></li><li><button type="button" onClick={() => void handleSignOut()} className="min-h-11 px-3 text-left font-medium text-slate-600 dark:text-slate-300">{signingOut ? "Signing outâ€¦" : "Sign out"}</button></li></> : <li><Link href="/login" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-lg px-3 py-2.5 font-medium text-slate-700 dark:text-slate-200">Sign in / Create account</Link></li>}{showThemeToggle && <li className="flex items-center justify-between border-t border-slate-100 px-3 pt-3 dark:border-slate-800"><span className="text-sm text-slate-600 dark:text-slate-300">Appearance</span><ThemeToggle /></li>}</ul></nav>}
     </header>
   );
 }

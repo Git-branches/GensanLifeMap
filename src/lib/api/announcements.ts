@@ -21,5 +21,5 @@ export function getAnnouncements(
 }
 
 export function getAnnouncement(id: number) {
-  return apiFetch<Announcement>(`/announcements/${id}`);
+  return apiFetch<{ data: Announcement }>(`/announcements/${id}`).then((response) => response.data);
 }

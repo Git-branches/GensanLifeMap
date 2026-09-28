@@ -9,7 +9,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { AuthField, AuthInput, PasswordInput, firstError } from "@/components/auth-fields";
 import AuthShell from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider";
@@ -21,7 +21,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status, signIn } = useAuth();
+  const { status, user, signIn } = useAuth();
+  const nextPath = searchParams.get("next");
+  const safeNextPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : null;
+  const redirectTo = user?.role === "admin" || user?.role === "moderator"
+    ? safeNextPath?.startsWith("/admin") ? safeNextPath : "/admin"
+    : safeNextPath ?? "/profile";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clientErrors, setClientErrors] = useState<{ email?: string; password?: string }>({});
@@ -29,8 +34,11 @@ function LoginForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (status === "authenticated") router.replace(redirectTo);
+  }, [status, router, redirectTo]);
+
   if (status === "authenticated") {
-    router.replace(searchParams.get("next") || "/profile");
     return (
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         You are already signed in. Redirecting…
@@ -51,8 +59,11 @@ function LoginForm() {
 
     setSubmitting(true);
     try {
-      await signIn({ email: email.trim(), password });
-      router.replace(searchParams.get("next") || "/profile");
+      const account = await signIn({ email: email.trim(), password });
+      const destination = account.role === "admin" || account.role === "moderator"
+        ? safeNextPath?.startsWith("/admin") ? safeNextPath : "/admin"
+        : safeNextPath ?? "/profile";
+      router.replace(destination);
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError && error.code === "VALIDATION_ERROR") {
@@ -123,7 +134,30 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-full flex-1 items-center justify-center bg-slate-50 px-4 py-10">
+          <p className="text-sm text-zinc-600">Loading sign-in…</p>
+        </main>
+      }
+    >
+      <LoginShell />
+    </Suspense>
+  );
+}
+
+/**
+ * Staff sign-ins (`/login?next=/admin…`) read/write the admin theme so the
+ * preference carries over to the admin workspace; everyone else uses the
+ * user theme. The two keys are independent.
+ */
+function LoginShell() {
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const themeScope = nextPath?.startsWith("/admin") ? "admin" : "user";
+  return (
     <AuthShell
+      themeScope={themeScope}
       eyebrow="Welcome back"
       title="Sign in to LifeMap"
       subtitle="Access your GenSan LifeMap account."
@@ -136,15 +170,7 @@ export default function LoginPage() {
         </>
       }
     >
-      <Suspense
-        fallback={
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Loading sign-in…
-          </p>
-        }
-      >
-        <LoginForm />
-      </Suspense>
+      <LoginForm />
     </AuthShell>
   );
 }

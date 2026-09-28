@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.glm-theme-scope.dark, .glm-theme-scope.dark *));
+
 /* ============================================================
    GenSan LifeMap design tokens — the single source of truth,
    extracted from the landing-page mockup (design-workflow/).
@@ -24,7 +26,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  color-scheme: light;
 
   --glm-navy: #0a1c30;
   --glm-navy-deep: #071425;
@@ -40,6 +43,19 @@
   --glm-container-max: 72rem; /* max-w-6xl */
 }
 
+/* Scoped theme containers (authenticated user/admin areas only).
+   Dark styles apply exclusively inside `div.glm-theme-scope.dark`.
+   Public pages render without a theme scope and always stay light. */
+.glm-theme-scope {
+  color-scheme: light;
+}
+
+.glm-theme-scope.dark {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+  color-scheme: dark;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,18 +63,150 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+html,
+body {
+  min-height: 100%;
+}
+
+.glm-theme-scope.dark {
+  background-color: #0b1220;
+  color: #e2e8f0;
+}
+
+.glm-theme-scope.dark :is(.bg-white, .bg-white\/95, .bg-white\/80) {
+  background-color: #111c2e;
+}
+
+.glm-theme-scope.dark :is(.bg-slate-50, .bg-zinc-50, .bg-gray-50, .bg-sky-50, .bg-blue-50) {
+  background-color: #0b1220;
+}
+
+.glm-theme-scope.dark :is(.bg-slate-100, .bg-zinc-100, .bg-gray-100, .bg-blue-100, .bg-sky-100) {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is(.text-slate-900, .text-slate-800, .text-zinc-900, .text-zinc-800, .text-gray-900, .text-gray-800) {
+  color: #e5edf8;
+}
+
+.glm-theme-scope.dark :is(.text-slate-700, .text-slate-600, .text-zinc-700, .text-zinc-600, .text-gray-700, .text-gray-600) {
+  color: #c0ccdc;
+}
+
+.glm-theme-scope.dark :is(.text-slate-500, .text-zinc-500, .text-gray-500) {
+  color: #9aabc0;
+}
+
+.glm-theme-scope.dark :is(.border-slate-100, .border-slate-200, .border-zinc-100, .border-zinc-200, .border-gray-100, .border-gray-200) {
+  border-color: #26364d;
+}
+
+/* Opacity-suffixed variants (e.g. border-slate-200/80) need substring matching. */
+.glm-theme-scope.dark :is([class*="border-slate-100"], [class*="border-slate-200"], [class*="border-zinc-100"], [class*="border-zinc-200"], [class*="border-gray-100"], [class*="border-gray-200"]) {
+  border-color: #26364d;
+}
+
+.glm-theme-scope.dark :is(.divide-slate-100, .divide-slate-200, .divide-zinc-100, .divide-zinc-200) > :not(:last-child) {
+  border-color: #26364d;
+}
+
+.glm-theme-scope.dark :is([class*="divide-slate-100"], [class*="divide-slate-200"], [class*="divide-zinc-100"], [class*="divide-zinc-200"]) > :not(:last-child) {
+  border-color: #26364d;
+}
+
+/* Translucent light surfaces (e.g. bg-slate-50/70) inside scopes. */
+.glm-theme-scope.dark :is([class*="bg-slate-50/"], [class*="bg-zinc-50/"], [class*="bg-gray-50/"], [class*="bg-sky-50/"], [class*="bg-blue-50/"]) {
+  background-color: rgb(11 18 32 / 0.72);
+}
+
+/* Arbitrary light surfaces used by the admin workspace. */
+.glm-theme-scope.dark :is([class*="bg-[#f5f8fc]"]) {
+  background-color: #0f1c30;
+}
+
+/* Hover states used by admin/user chrome that has no explicit dark:hover. */
+.glm-theme-scope.dark :is(.hover\:bg-slate-50:hover, .hover\:bg-slate-100:hover) {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is(.hover\:bg-blue-50:hover, .hover\:bg-blue-50\/60:hover) {
+  background-color: rgb(30 58 138 / 0.35);
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-slate-50"], [class*="hover:bg-slate-100"]):hover {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-white"]):hover {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-["]):hover {
+  background-color: #16273f;
+}
+
+.glm-theme-scope.dark :is([class*="focus:bg-white"]):focus {
+  background-color: #111c2e;
+}
+
+/* Active navigation pills keep an indigo tint in dark scope. */
+.glm-theme-scope.dark a[aria-current="page"]:is(.bg-blue-50) {
+  background-color: rgb(30 58 138 / 0.4);
+  color: #dbeafe;
+}
+
+/* Status/accent tones keep contrast on the darkened surfaces above. */
+.glm-theme-scope.dark :is(.text-blue-800) { color: #bfdbfe; }
+.glm-theme-scope.dark :is(.text-blue-700) { color: #93c5fd; }
+.glm-theme-scope.dark :is(.text-sky-800) { color: #bae6fd; }
+.glm-theme-scope.dark :is(.text-emerald-800) { color: #a7f3d0; }
+.glm-theme-scope.dark :is(.text-green-800, .text-green-700) { color: #bbf7d0; }
+.glm-theme-scope.dark :is(.text-amber-800) { color: #fde68a; }
+.glm-theme-scope.dark :is(.text-rose-800) { color: #fecdd3; }
+.glm-theme-scope.dark :is(.text-rose-700) { color: #fda4af; }
+.glm-theme-scope.dark :is(.text-red-800) { color: #fecaca; }
+.glm-theme-scope.dark :is(.text-teal-700) { color: #99f6e4; }
+
+/* Hairline rings keep contrast on dark surfaces. */
+.glm-theme-scope.dark :is([class*="ring-slate-"], [class*="ring-blue-"], [class*="ring-sky-"], [class*="ring-zinc-"]) {
+  --tw-ring-color: #2b3c55;
+}
+
+.glm-theme-scope.dark :is(input, select, textarea) {
+  color-scheme: dark;
+}
+
+.glm-theme-scope.dark .bg-gradient-to-br,
+.glm-theme-scope.dark .bg-gradient-to-b {
+  background-image: none;
+  background-color: #0f1a2b;
+}
+
+.glm-theme-scope.dark .bg-red-50 { background-color: #321d28; }
+.glm-theme-scope.dark .bg-emerald-50,
+.glm-theme-scope.dark .bg-green-50 { background-color: #12302c; }
+.glm-theme-scope.dark .bg-amber-50 { background-color: #342b1c; }
+.glm-theme-scope.dark .bg-sky-50 { background-color: #122b40; }
+
+.glm-theme-scope.dark :is(.border-red-200, .border-emerald-200, .border-green-200, .border-amber-200, .border-sky-200) {
+  border-color: #40516a;
+}
+
+.glm-theme-scope.dark .leaflet-popup-content-wrapper,
+.glm-theme-scope.dark .leaflet-popup-tip {
+  background: #111c2e;
+  color: #e2e8f0;
+}
+
+.glm-theme-scope.dark .lifemap-popup-title { color: #e5edf8; }
+.glm-theme-scope.dark .lifemap-popup-meta,
+.glm-theme-scope.dark .lifemap-popup-kind { color: #aab8ca; }
 
 /* ---- GenSan LifeMap markers (Leaflet divIcons) ---- */
 .lifemap-marker-wrap {

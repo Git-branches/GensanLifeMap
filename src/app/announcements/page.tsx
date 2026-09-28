@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CollectionPage from "@/components/collection-page";
 import { getAnnouncements, getFriendlyErrorMessage } from "@/lib/api";
-import { Card, CardEyebrow, CardMeta, CardText, CardTitle, CardActions, categoryTone, Badge } from "@/components/ui/card";
+import { Card, CardText, CardTitle, CardActions, categoryTone, Badge } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ArrowRightIcon, AnnounceIcon } from "@/components/ui/icons";
 
@@ -115,12 +115,12 @@ export default async function AnnouncementsPage() {
             </div>
 
             <CardActions className="mt-4">
-              <button
-                type="button"
+              <Link
+                href={`/announcements/${a.id}`}
                 className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Read More <ArrowRightIcon />
-              </button>
+              </Link>
             </CardActions>
           </Card>
         );

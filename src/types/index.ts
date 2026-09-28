@@ -5,3 +5,4 @@ export type { Facility } from "./facility";
 export type { Announcement } from "./announcement";
 export type { DataSource } from "./data-source";
 export type { AuthSession, AuthStatus, AuthUser } from "./user";
+export type { CommunityReport, CommunityReportStatus, CreateCommunityReportInput } from "./community-report";

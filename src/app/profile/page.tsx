@@ -8,9 +8,11 @@
  */
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { AuthField, AuthInput, PasswordInput, firstError } from "@/components/auth-fields";
 import { useAuth } from "@/components/auth-provider";
+import { ScopedThemeProvider } from "@/components/theme-provider";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
 import Button from "@/components/ui/button";
@@ -45,26 +47,30 @@ export default function ProfilePage() {
 
   if (status !== "authenticated" || !user) {
     return (
-      <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
-        <SiteHeader />
-        <main className="flex-1 py-10" aria-label="Checking your account">
-          <Container>
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="mt-3 h-9 w-2/3" />
-            <Skeleton className="mt-6 h-40 rounded-xl!" />
-          </Container>
-        </main>
-        <SiteFooter />
-      </div>
+      <ScopedThemeProvider scope="user">
+        <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+          <SiteHeader />
+          <main className="flex-1 py-10" aria-label="Checking your account">
+            <Container>
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="mt-3 h-9 w-2/3" />
+              <Skeleton className="mt-6 h-40 rounded-xl!" />
+            </Container>
+          </main>
+          <SiteFooter />
+        </div>
+      </ScopedThemeProvider>
     );
   }
 
   // Keyed by account id: form state initializes from the loaded user,
   // and resets cleanly if a different account ever signs in.
   return (
-    <Suspense>
-      <ProfileContent key={user.id} user={user} />
-    </Suspense>
+    <ScopedThemeProvider scope="user">
+      <Suspense>
+        <ProfileContent key={user.id} user={user} />
+      </Suspense>
+    </ScopedThemeProvider>
   );
 }
 
@@ -208,12 +214,19 @@ function ProfileContent({ user }: { user: AuthUser }) {
                   <dd><Badge tone="neutral">{user.role}</Badge></dd>
                 </div>
                 <div className="flex items-center justify-between py-2">
+                  <dt className="text-zinc-500 dark:text-zinc-400">Account status</dt>
+                  <dd><Badge tone="success">Signed in</Badge></dd>
+                </div>
+                <div className="flex items-center justify-between py-2">
                   <dt className="text-zinc-500 dark:text-zinc-400">Member since</dt>
                   <dd className="font-medium text-zinc-800 dark:text-zinc-100">
                     {formatDate(user.created_at)}
                   </dd>
                 </div>
               </dl>
+              <Link href="/reports" className="mt-3 inline-flex min-h-10 items-center text-sm font-semibold text-blue-700 hover:underline">
+                View my community reports →
+              </Link>
               <Button
                 variant="secondary"
                 size="sm"

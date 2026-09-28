@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CollectionPage from "@/components/collection-page";
 import { getFriendlyErrorMessage, getLocations } from "@/lib/api";
-import { Card, CardEyebrow, CardMeta, CardText, CardTitle, CardActions, Badge } from "@/components/ui/card";
+import { Card, CardMeta, CardText, CardTitle, CardActions, Badge } from "@/components/ui/card";
 import { ArrowRightIcon, PinIcon, MapIcon } from "@/components/ui/icons";
 
 /** Public listing of places across General Santos City. */

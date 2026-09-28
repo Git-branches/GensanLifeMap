@@ -12,3 +12,4 @@ export { getDataSources, getDataSource } from "./data-sources";
 export type { DataSourceFilters } from "./data-sources";
 export { changePassword, getCurrentUser, loginAccount, logoutAccount, registerAccount, updateProfile } from "./auth";
 export type { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput } from "./auth";
+export { createCommunityReport, getMyReport, getMyReports } from "./community-reports";

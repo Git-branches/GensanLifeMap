@@ -20,7 +20,7 @@ export default function NotFound() {
           is incorrect.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/map" className={buttonClasses("primary")}>
+          <Link href="/lifemap" className={buttonClasses("primary")}>
             Open LifeMap
           </Link>
           <Link href="/" className={buttonClasses("secondary")}>

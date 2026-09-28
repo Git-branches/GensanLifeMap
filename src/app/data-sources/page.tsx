@@ -1,6 +1,6 @@
 import CollectionPage from "@/components/collection-page";
 import { getDataSources, getFriendlyErrorMessage } from "@/lib/api";
-import { Card, CardEyebrow, CardMeta, CardText, CardTitle, Badge } from "@/components/ui/card";
+import { Card, CardText, CardTitle, Badge } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DatabaseIcon, CheckIcon } from "@/components/ui/icons";
 

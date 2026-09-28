@@ -1,9 +1,8 @@
 /**
- * Auth token storage. The Sanctum Bearer token lives in localStorage
- * (primary) with a cookie mirror (`glm_token`) so Next.js middleware
- * can UX-guard protected routes server-side. The cookie is NOT the
- * security boundary — Laravel enforces authentication on every
- * protected endpoint regardless. Both stores clear together on logout.
+ * Sanctum Bearer token storage. The token lives in localStorage; a
+ * non-secret `glm_token=1` cookie is only a routing hint for Next.js.
+ * The cookie is NOT an authentication credential or security boundary —
+ * Laravel enforces the bearer token on every protected endpoint.
  */
 
 const TOKEN_KEY = "glm_token";
@@ -31,7 +30,7 @@ export function setAuthToken(token: string): void {
     // API calls will simply be unauthenticated until sign-in succeeds.
   }
   document.cookie =
-    `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    `${TOKEN_KEY}=1; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
 }
 
 export function clearAuthToken(): void {

@@ -53,7 +53,7 @@ export default async function MapPage() {
             <div className="mt-3 text-left">
               <ErrorState message={message} />
             </div>
-            <Link href="/map" className={buttonClasses("primary", "md", "mt-4")}>
+            <Link href="/lifemap" className={buttonClasses("primary", "md", "mt-4")}>
               Try again
             </Link>
           </div>

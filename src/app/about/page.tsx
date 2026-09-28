@@ -56,7 +56,7 @@ export default function AboutPage() {
               description="GenSan LifeMap is a public information platform that brings together listed records about places, public projects, community facilities, and announcements — browsable as lists and explorable on one interactive city map."
             />
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/map" className={buttonClasses("primary")}>
+              <Link href="/lifemap" className={buttonClasses("primary")}>
                 Explore LifeMap
               </Link>
               <Link href="/data-sources" className={buttonClasses("secondary")}>
@@ -133,7 +133,7 @@ export default function AboutPage() {
                     its public details.
                   </CardText>
                   <Link
-                    href="/map"
+                    href="/lifemap"
                     className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Open LifeMap →

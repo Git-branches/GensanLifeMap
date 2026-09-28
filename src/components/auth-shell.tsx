@@ -1,72 +1,44 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import ThemeToggle from "@/components/theme-toggle";
+import { ScopedThemeProvider, type ThemeScope } from "@/components/theme-provider";
 
-/**
- * Shared layout for authentication screens (sign in / create account).
- * Phase 5 visual language: deep-navy geography panel with General
- * Santos coastline imagery beside a white form card. Stacks on mobile
- * with the imagery as a compact top banner.
- */
 export default function AuthShell({
   eyebrow,
   title,
   subtitle,
   children,
   switchPrompt,
+  themeScope = "user",
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   children: ReactNode;
   switchPrompt: ReactNode;
+  /** Which persisted theme this login surface reads/writes. Defaults to "user". */
+  themeScope?: ThemeScope;
 }) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-[#071425] font-sans">
-      <main className="mx-auto grid w-full max-w-6xl flex-1 gap-0 px-4 py-8 sm:py-12 lg:grid-cols-2 lg:gap-8">
-        <div className="relative min-h-44 overflow-hidden rounded-t-2xl lg:min-h-0 lg:rounded-2xl">
-          <Image
-            src="/images/landing/gensan.jpg"
-            alt="Aerial view of the General Santos City coastline"
-            fill
-            priority
-            className="object-cover"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#071425] via-[#071425]/45 to-[#071425]/10 lg:bg-gradient-to-r lg:from-[#071425]/30 lg:via-transparent lg:to-transparent"
-          />
-          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
-              General Santos City
-            </p>
-            <p className="mt-1 max-w-sm text-xl font-bold leading-snug text-white sm:text-2xl">
-              Know your city. Explore General Santos.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-center rounded-b-2xl bg-white p-6 dark:bg-zinc-950 sm:p-8 lg:rounded-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-400">
-            {eyebrow}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {title}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {subtitle}
-          </p>
-          <div className="mt-6">{children}</div>
-          <p className="mt-6 border-t border-zinc-200 pt-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-            {switchPrompt}
-          </p>
-          <p className="mt-3 text-center text-xs text-zinc-500 dark:text-zinc-500">
-            <Link href="/" className="hover:underline">
-              ← Back to GenSan LifeMap home
-            </Link>
-          </p>
+    <ScopedThemeProvider key={themeScope} scope={themeScope}>
+      <main className="flex min-h-full flex-1 items-center justify-center bg-slate-50 px-4 py-10 transition-colors sm:py-14 dark:bg-slate-950">
+        <div className="w-full max-w-md">
+          <div className="mb-6 flex items-center justify-between"><Link href="/" className="flex items-center gap-2.5" aria-label="GenSan LifeMap home">
+            <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="7.5" r="2" fill="currentColor"/></svg>
+            </span>
+            <span><span className="block text-sm font-bold tracking-wide text-slate-900 dark:text-slate-100">GenSan LifeMap</span><span className="block text-xs text-slate-500 dark:text-slate-400">General Santos City</span></span>
+          </Link><ThemeToggle /></div>
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{eyebrow}</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{subtitle}</p>
+            <div className="mt-6">{children}</div>
+            <p className="mt-6 border-t border-slate-100 pt-4 text-center text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">{switchPrompt}</p>
+            <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400"><Link href="/" className="hover:text-blue-700 hover:underline dark:hover:text-blue-300">← Back to GenSan LifeMap</Link></p>
+          </section>
         </div>
       </main>
-    </div>
+    </ScopedThemeProvider>
   );
 }

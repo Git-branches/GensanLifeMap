@@ -4,7 +4,6 @@
  */
 
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { ArrowRightIcon } from "./icons";
 
 interface BreadcrumbItem {

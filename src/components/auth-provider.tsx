@@ -91,7 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await logoutAccount();
+    try {
+      await logoutAccount();
+    } catch {
+      // logoutAccount clears the local token in its finally block; preserve
+      // the signed-out UI even if the API is temporarily unavailable.
+    }
     setUser(null);
     setStatus("unauthenticated");
   }, []);

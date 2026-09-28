@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CollectionPage from "@/components/collection-page";
 import { getFacilities, getFriendlyErrorMessage } from "@/lib/api";
-import { Card, CardEyebrow, CardMeta, CardText, CardTitle, CardActions, Badge } from "@/components/ui/card";
+import { Card, CardMeta, CardText, CardTitle, CardActions, Badge } from "@/components/ui/card";
 import { ArrowRightIcon, FacilityIcon, PinIcon, MapIcon } from "@/components/ui/icons";
 
 /** Public listing of public and community facilities. */
