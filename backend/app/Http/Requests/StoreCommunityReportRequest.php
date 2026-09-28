@@ -8,8 +8,7 @@ class StoreCommunityReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Public submission endpoint; admin moderation is separately protected.
-        return true;
+        return $this->user() !== null;
     }
 
     /**
@@ -18,8 +17,6 @@ class StoreCommunityReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Required until auth lands; then it will be derived from the session/token.
-            'user_id' => ['required', 'integer', 'exists:users,id'],
             'location_id' => ['required', 'integer', 'exists:locations,id'],
             'category' => ['required', 'string', 'in:road,flooding,garbage,streetlight,accessibility,environment,other'],
             'title' => ['required', 'string', 'max:255'],

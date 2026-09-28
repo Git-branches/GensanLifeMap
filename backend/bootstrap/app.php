@@ -22,8 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ForceJsonResponse::class,
         ]);
         $middleware->alias([
-            // Placeholder: denies with 401 until real admin auth lands next phase.
-            'auth.required' => \App\Http\Middleware\RequireAuthentication::class,
+            'staff' => \App\Http\Middleware\EnsureStaffRole::class,
+            'administrator' => \App\Http\Middleware\EnsureAdministratorRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -10,10 +10,11 @@ use App\Models\AuditLog;
 use App\Models\CommunityReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class CommunityReportController extends Controller
 {
-    public function index(Request $request)
+    public function mine(Request $request)
     {
         $filters = $request->validate([
             'category' => ['sometimes', 'string', 'in:road,flooding,garbage,streetlight,accessibility,environment,other'],
@@ -22,7 +23,7 @@ class CommunityReportController extends Controller
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
-        $query = CommunityReport::query()->with(['user', 'location'])->latest('id');
+        $query = $request->user()->communityReports()->with(['user', 'location'])->latest('id');
 
         if (! empty($filters['category'])) {
             $query->where('category', $filters['category']);
@@ -45,8 +46,10 @@ class CommunityReportController extends Controller
         );
     }
 
-    public function show(CommunityReport $communityReport): CommunityReportResource
+    public function show(Request $request, CommunityReport $communityReport): CommunityReportResource
     {
+        abort_unless($communityReport->user_id === $request->user()->id, 404);
+
         return new CommunityReportResource($communityReport->load(['user', 'location']));
     }
 
@@ -60,7 +63,7 @@ class CommunityReportController extends Controller
         }
 
         $report = CommunityReport::create([
-            'user_id' => $data['user_id'] ?? null,
+            'user_id' => $request->user()->id,
             'location_id' => $data['location_id'],
             'category' => $data['category'],
             'title' => $data['title'],
@@ -79,11 +82,15 @@ class CommunityReportController extends Controller
         UpdateCommunityReportStatusRequest $request,
         CommunityReport $communityReport
     ): CommunityReportResource {
+        if (! in_array($request->user()->role, [\App\Models\User::ROLE_ADMIN, \App\Models\User::ROLE_MODERATOR], true)) {
+            throw new AccessDeniedHttpException('You are not authorized to moderate reports.');
+        }
+
         $oldStatus = $communityReport->status;
         $communityReport->update(['status' => $request->validated()['status']]);
 
         AuditLog::create([
-            'user_id' => null, // No authenticated actor until auth phase lands.
+            'user_id' => $request->user()->id,
             'action' => $communityReport->status,
             'entity_type' => 'community_report',
             'entity_id' => $communityReport->id,

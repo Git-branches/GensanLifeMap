@@ -13,15 +13,14 @@ class AnnouncementController extends Controller
     {
         $filters = $request->validate([
             'category' => ['sometimes', 'string', 'max:50'],
-            'status' => ['sometimes', 'string', 'in:draft,published,archived'],
             'search' => ['sometimes', 'string', 'max:100'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
         $query = Announcement::query()->with('source')->latest('id');
 
-        // Public listing defaults to published so drafts are not leaked.
-        $query->where('status', $filters['status'] ?? 'published');
+        // Public listings are always published-only; status is controlled by staff.
+        $query->where('status', 'published');
 
         if (! empty($filters['category'])) {
             $query->where('category', $filters['category']);
@@ -42,6 +41,8 @@ class AnnouncementController extends Controller
 
     public function show(Announcement $announcement): AnnouncementResource
     {
+        abort_unless($announcement->status === 'published', 404);
+
         return new AnnouncementResource($announcement->load('source'));
     }
 }

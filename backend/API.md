@@ -5,16 +5,10 @@ All responses are JSON. Collection endpoints are paginated (`per_page` default 1
 
 ## Authentication
 
-Public read endpoints and `POST /community-reports` need no auth.
-`PATCH /community-reports/{id}/status` sits behind the `auth.required`
-placeholder middleware, which currently returns `401` for every caller:
-
-```json
-{ "message": "Authentication required. Admin authentication will be enabled in the next phase." }
-```
-
-No auth system is invented in this phase; the next phase replaces the
-middleware alias with real authentication (e.g. Sanctum) without route changes.
+Public discovery endpoints are read-only and do not require an account.
+Account and community-report endpoints use Laravel Sanctum bearer tokens.
+Report reads and submissions are scoped to the authenticated user; status
+moderation is restricted to admin and moderator roles.
 
 ## Pagination
 
@@ -93,9 +87,9 @@ Example: `GET /api/facilities?category=school&barangay=Apopong`
 | GET | `/announcements` | List announcements with `source` eager-loaded |
 | GET | `/announcements/{id}` | Single announcement with `source` |
 
-Query params: `category`, `status` (`draft|published|archived`), `search`
-(title/content), `per_page`. **Listing defaults to `status=published`** so
-drafts are never leaked; pass `?status=draft` explicitly to override.
+Query params: `category`, `search` (title/content), `per_page`. Public
+listing always returns `status=published`; draft/archived states are only
+available through the role-protected admin API.
 
 Example: `GET /api/announcements?category=emergency`
 
@@ -113,10 +107,10 @@ Query params: `source_type` (`official|public_document|community|system_generate
 
 | Method | Endpoint | Purpose | Auth |
 |---|---|---|---|
-| GET | `/community-reports` | List reports with safe `user` (id+name only) and `location` | No |
-| GET | `/community-reports/{id}` | Single report | No |
-| POST | `/community-reports` | Submit a report (multipart or JSON) | No |
-| PATCH | `/community-reports/{id}/status` | Moderate status | **Required (401 until next phase)** |
+| GET | `/community-reports/mine` | List only the authenticated user's reports | Sanctum |
+| GET | `/community-reports/{id}` | Read an owned report; other users receive 404 | Sanctum |
+| POST | `/community-reports` | Submit a report; owner is derived from the token | Sanctum |
+| PATCH | `/community-reports/{id}/status` | Moderate status | Admin/moderator |
 
 List query params: `category`
 (`road|flooding|garbage|streetlight|accessibility|environment|other`),
@@ -129,7 +123,6 @@ List query params: `category`
 
 | Field | Rules |
 |---|---|
-| `user_id` | required, integer, must exist in `users` (derived from session after auth phase) |
 | `location_id` | required, integer, must exist in `locations` |
 | `category` | required, one of `road,flooding,garbage,streetlight,accessibility,environment,other` |
 | `title` | required, string, max 255 |
@@ -143,7 +136,7 @@ Request:
 
 ```bash
 curl -X POST http://localhost:8000/api/community-reports \
-  -F user_id=3 -F location_id=1 -F category=road \
+  -H "Authorization: Bearer <token>" -F location_id=1 -F category=road \
   -F title="Pothole cluster near demo intersection" \
   -F description="Fictional sample report." \
   -F photo=@pothole.jpg
@@ -170,7 +163,7 @@ Response `201`:
 
 #### Moderate a report (protected)
 
-`PATCH /api/community-reports/{id}/status` with JSON `{ "status": "verified" }`.
+`PATCH /api/community-reports/{id}/status` with JSON `{ "status": "verified" }` and an admin/moderator token.
 Allowed transitions only:
 
 - `submitted` → `under_review`, `verified`, `rejected`
@@ -179,6 +172,48 @@ Allowed transitions only:
 - `resolved`, `rejected` → terminal (no further transitions)
 
 Illegal transitions return `422`. Every change writes an `audit_logs` row.
+
+### Admin / LGU management
+
+All routes below require a Sanctum token. `admin` and `moderator` roles may
+view the overview and review community reports. Only `admin` may manage city
+content, users, and audit logs.
+
+| Method | Endpoint | Purpose | Role |
+|---|---|---|---|
+| GET | `/admin/overview` | Database totals and recent work | admin, moderator |
+| GET | `/admin/community-reports` | Search/filter all reports | admin, moderator |
+| GET | `/admin/community-reports/{id}` | Staff report detail | admin, moderator |
+| GET/POST | `/admin/locations` | List/create locations | admin |
+| GET/PUT/DELETE | `/admin/locations/{id}` | View/update/delete an unreferenced location | admin |
+| GET/POST | `/admin/projects` | List/create projects | admin |
+| GET/PUT/DELETE | `/admin/projects/{id}` | View/update/delete a project | admin |
+| GET/POST | `/admin/facilities` | List/create facilities | admin |
+| GET/PUT/DELETE | `/admin/facilities/{id}` | View/update/delete a facility | admin |
+| GET/POST | `/admin/announcements` | List/create announcements | admin |
+| GET/PUT/DELETE | `/admin/announcements/{id}` | View/update/publish/delete announcements | admin |
+| GET/POST | `/admin/data-sources` | List/create sources | admin |
+| GET/PUT/DELETE | `/admin/data-sources/{id}` | View/update/verify/delete an unlinked source | admin |
+| GET | `/admin/users` | Search/filter users (safe fields only) | admin |
+| PUT | `/admin/users/{id}/role` | Change another user's existing role | admin |
+| GET | `/admin/audit-logs` | Read-only audit history | admin |
+
+Admin content endpoints validate input server-side and write audit entries
+for create/update actions. Role changes are audited; profile updates cannot
+change roles, and a user cannot change their own role. Report status changes
+continue to use `PATCH /community-reports/{id}/status` and the existing
+transition rules. Resource collections accept `search` and `per_page`; the
+existing validated filters are also available where applicable.
+
+Content deletions require an explicit UI confirmation and are audited.
+Deleting locations or data sources with dependent projects/facilities/reports
+or announcements is rejected with `409` to avoid cascade loss or broken
+source associations.
+
+The schema has no general active/deactivated flag, publish flag on locations
+or facilities, or archive field for city records. Those controls are
+intentionally not invented; announcement publication uses its existing
+`draft|published|archived` status.
 
 ## Errors
 
@@ -197,7 +232,7 @@ Illegal transitions return `422`. Every change writes an `audit_logs` row.
 }
 ```
 
-`401` (protected route): see Authentication above.
+`401` (missing/invalid Sanctum token); `403` (authenticated user lacks staff role).
 `429` (rate limit): API is throttled at 60 requests/minute per IP.
 
 SQL errors, stack traces, credentials, and file paths are never exposed
@@ -211,9 +246,6 @@ SQL errors, stack traces, credentials, and file paths are never exposed
 - `users` and `audit_logs` have no public endpoints.
 - CORS restricted to `FRONTEND_URL` (default `http://localhost:3000`); extend via `EXTRA_CORS_ORIGINS` (comma-separated), never a wildcard in production.
 
-## Remaining limitations (next phases)
+## Remaining limitations
 
-- Real authentication/authorization (Sanctum or equivalent) + role checks.
-- `POST` `user_id` currently client-supplied; will come from the authenticated user.
 - Photo serving requires `php artisan storage:link` on the deployment host.
-- No write endpoints yet for locations/projects/facilities/announcements/sources.

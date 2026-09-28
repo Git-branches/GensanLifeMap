@@ -44,7 +44,8 @@ class AnnouncementsApiTest extends TestCase
 
         $this->getJson('/api/announcements?status=draft')
             ->assertOk()
-            ->assertJsonPath('meta.total', 1);
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.title', 'Sample Advisory');
     }
 
     public function test_index_filters_by_category_and_search(): void
@@ -71,5 +72,14 @@ class AnnouncementsApiTest extends TestCase
         $this->getJson('/api/announcements/9999')
             ->assertNotFound()
             ->assertJsonPath('message', 'Resource not found.');
+    }
+
+    public function test_show_does_not_expose_draft_or_archived_announcements(): void
+    {
+        $draft = $this->makeAnnouncement(['status' => 'draft']);
+        $archived = $this->makeAnnouncement(['status' => 'archived']);
+
+        $this->getJson("/api/announcements/{$draft->id}")->assertNotFound();
+        $this->getJson("/api/announcements/{$archived->id}")->assertNotFound();
     }
 }
