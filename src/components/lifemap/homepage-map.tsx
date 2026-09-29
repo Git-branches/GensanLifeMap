@@ -30,7 +30,7 @@ export default function HomepageMap({ items }: { items: MapItem[] }) {
       <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 sm:left-5 sm:right-5">
         {[
           ["Locations", "bg-blue-600"],
-          ["Projects", "bg-amber-600"],
+          ["Projects", "bg-green-600"],
           ["Facilities", "bg-orange-500"],
         ].map(([label, color]) => (
           <span

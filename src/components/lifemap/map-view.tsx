@@ -11,8 +11,16 @@
 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  ScaleControl,
+  TileLayer,
+  useMap,
+  ZoomControl,
+} from "react-leaflet";
 import {
   GENSAN_CENTER,
   type MapItem,
@@ -23,6 +31,12 @@ const KIND_LABEL: Record<MapItemKind, string> = {
   location: "Location",
   project: "Project",
   facility: "Facility",
+};
+
+const KIND_BADGE_CLASS: Record<MapItemKind, string> = {
+  location: "lifemap-badge lifemap-badge--location",
+  project: "lifemap-badge lifemap-badge--project",
+  facility: "lifemap-badge lifemap-badge--facility",
 };
 
 function iconFor(kind: MapItemKind, selected: boolean): L.DivIcon {
@@ -47,6 +61,69 @@ function cachedIcon(kind: MapItemKind, selected: boolean): L.DivIcon {
     iconCache.set(cacheKey, icon);
   }
   return icon;
+}
+
+/**
+ * Small map chrome: fullscreen toggle + live result count.
+ * Rendered inside <MapContainer> so it can use `useMap`, but visually
+ * positioned as absolute overlays (Leaflet panes sit below z-[500]).
+ */
+function MapChrome({ count }: { count: number }) {
+  const map = useMap();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = map.getContainer().parentElement ?? map.getContainer();
+    if (!document.fullscreenElement) {
+      void el.requestFullscreen?.().catch(() => undefined);
+    } else {
+      void document.exitFullscreen().catch(() => undefined);
+    }
+  }, [map]);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  // Invalidate size after entering/leaving fullscreen so tiles repaint.
+  useEffect(() => {
+    const t = window.setTimeout(() => map.invalidateSize(), 250);
+    return () => window.clearTimeout(t);
+  }, [map, isFullscreen]);
+
+  return (
+    <>
+      <div className="lifemap-legend" aria-label="Map legend">
+        <span className="lifemap-legend-title">Legend</span>
+        <span className="lifemap-legend-row">
+          <span className="lifemap-legend-dot lifemap-legend-dot--location" />
+          Locations
+        </span>
+        <span className="lifemap-legend-row">
+          <span className="lifemap-legend-dot lifemap-legend-dot--project" />
+          Projects
+        </span>
+        <span className="lifemap-legend-row">
+          <span className="lifemap-legend-dot lifemap-legend-dot--facility" />
+          Facilities
+        </span>
+        <span className="lifemap-legend-count" aria-live="polite">
+          {count} shown
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        className="lifemap-fullscreen"
+        aria-pressed={isFullscreen}
+        title={isFullscreen ? "Exit fullscreen" : "View fullscreen"}
+      >
+        {isFullscreen ? "⤢ Exit" : "⤢ Fullscreen"}
+      </button>
+    </>
+  );
 }
 
 /**
@@ -143,6 +220,7 @@ export default function MapView({
       center={[GENSAN_CENTER.lat, GENSAN_CENTER.lng]}
       zoom={GENSAN_CENTER.zoom}
       scrollWheelZoom
+      zoomControl={false}
       className="h-full w-full"
     >
       <TileLayer
@@ -150,6 +228,9 @@ export default function MapView({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={19}
       />
+      <ZoomControl position="topright" />
+      <ScaleControl position="bottomright" imperial={false} />
+      <MapChrome count={items.length} />
       <MapController
         items={items}
         fitItems={fitItems}
@@ -172,18 +253,33 @@ export default function MapView({
           <Popup>
             <div className="lifemap-popup">
               <p className="lifemap-popup-kind">
-                {KIND_LABEL[item.kind]} · {item.category}
+                <span className={KIND_BADGE_CLASS[item.kind]}>
+                  {KIND_LABEL[item.kind]}
+                </span>
+                <span className="lifemap-popup-category">{item.category}</span>
               </p>
               <p className="lifemap-popup-title">{item.label}</p>
               {item.barangay && (
                 <p className="lifemap-popup-meta">Brgy. {item.barangay}</p>
+              )}
+              {item.kind === "project" && item.status && (
+                <p className="lifemap-popup-meta">
+                  Status: <strong>{item.status}</strong>
+                </p>
+              )}
+              {item.description && (
+                <p className="lifemap-popup-desc">
+                  {item.description.length > 110
+                    ? `${item.description.slice(0, 110)}…`
+                    : item.description}
+                </p>
               )}
               <button
                 type="button"
                 onClick={() => onViewDetails(item.key)}
                 className="lifemap-popup-action"
               >
-                View Details
+                View Details →
               </button>
             </div>
           </Popup>

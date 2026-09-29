@@ -45,8 +45,8 @@ const KIND_TABS: { value: KindFilter; label: string }[] = [
 ];
 
 const KIND_DOT_CLASS: Record<string, string> = {
-  location: "bg-blue-700",
-  project: "bg-amber-600",
+  location: "bg-blue-600",
+  project: "bg-green-600",
   facility: "bg-orange-500",
 };
 
