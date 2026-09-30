@@ -1,0 +1,540 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.glm-theme-scope.dark, .glm-theme-scope.dark *));
+
+/* ============================================================
+   GenSan LifeMap design tokens — the single source of truth,
+   extracted from the landing-page mockup (design-workflow/).
+   Components must reference these values (via the Tailwind
+   classes documented below, or the `ui/` primitives) instead of
+   inventing new colors, radii, or spacing.
+   ------------------------------------------------------------
+   Navy bands ........ #0a1c30 (header/hero/footer) · #071425 base
+   Primary action .... blue-600 (#2563eb) / hover blue-700
+   Focus ring ........ blue-600
+   Category colors ... locations blue-600 · projects green-600 ·
+                       facilities orange-500 · announcements purple-600
+   Map dots .......... same four category hues
+   Light surfaces .... white cards / #f4f7fb page tint
+   Borders ........... zinc-200 · dark zinc-800
+   Text .............. zinc-900 headings / zinc-600 body /
+                       zinc-500 metadata · dark zinc-50/400/400
+   Radius ............ rounded-full buttons/chips ·
+                       rounded-xl cards · rounded-lg inputs
+   Container ......... max-w-6xl, px-4
+   ============================================================ */
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  color-scheme: light;
+
+  --glm-navy: #0a1c30;
+  --glm-navy-deep: #071425;
+  --glm-brand: #2563eb;
+  --glm-brand-hover: #1d4ed8;
+  --glm-cat-location: #2563eb;
+  --glm-cat-project: #16a34a;
+  --glm-cat-facility: #f97316;
+  --glm-cat-announcement: #9333ea;
+  --glm-dot-location: #2563eb;
+  --glm-dot-project: #16a34a;
+  --glm-dot-facility: #f97316;
+  --glm-container-max: 72rem; /* max-w-6xl */
+}
+
+/* Scoped theme containers (authenticated user/admin areas only).
+   Dark styles apply exclusively inside `div.glm-theme-scope.dark`.
+   Public pages render without a theme scope and always stay light. */
+.glm-theme-scope {
+  color-scheme: light;
+}
+
+.glm-theme-scope.dark {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+.glm-theme-scope.dark {
+  background-color: #0b1220;
+  color: #e2e8f0;
+}
+
+.glm-theme-scope.dark :is(.bg-white, .bg-white\/95, .bg-white\/80) {
+  background-color: #111c2e;
+}
+
+.glm-theme-scope.dark :is(.bg-slate-50, .bg-zinc-50, .bg-gray-50, .bg-sky-50, .bg-blue-50) {
+  background-color: #0b1220;
+}
+
+.glm-theme-scope.dark :is(.bg-slate-100, .bg-zinc-100, .bg-gray-100, .bg-blue-100, .bg-sky-100) {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is(.text-slate-900, .text-slate-800, .text-zinc-900, .text-zinc-800, .text-gray-900, .text-gray-800) {
+  color: #e5edf8;
+}
+
+.glm-theme-scope.dark :is(.text-slate-700, .text-slate-600, .text-zinc-700, .text-zinc-600, .text-gray-700, .text-gray-600) {
+  color: #c0ccdc;
+}
+
+.glm-theme-scope.dark :is(.text-slate-500, .text-zinc-500, .text-gray-500) {
+  color: #9aabc0;
+}
+
+.glm-theme-scope.dark :is(.border-slate-100, .border-slate-200, .border-zinc-100, .border-zinc-200, .border-gray-100, .border-gray-200) {
+  border-color: #26364d;
+}
+
+/* Opacity-suffixed variants (e.g. border-slate-200/80) need substring matching. */
+.glm-theme-scope.dark :is([class*="border-slate-100"], [class*="border-slate-200"], [class*="border-zinc-100"], [class*="border-zinc-200"], [class*="border-gray-100"], [class*="border-gray-200"]) {
+  border-color: #26364d;
+}
+
+.glm-theme-scope.dark :is(.divide-slate-100, .divide-slate-200, .divide-zinc-100, .divide-zinc-200) > :not(:last-child) {
+  border-color: #26364d;
+}
+
+.glm-theme-scope.dark :is([class*="divide-slate-100"], [class*="divide-slate-200"], [class*="divide-zinc-100"], [class*="divide-zinc-200"]) > :not(:last-child) {
+  border-color: #26364d;
+}
+
+/* Translucent light surfaces (e.g. bg-slate-50/70) inside scopes. */
+.glm-theme-scope.dark :is([class*="bg-slate-50/"], [class*="bg-zinc-50/"], [class*="bg-gray-50/"], [class*="bg-sky-50/"], [class*="bg-blue-50/"]) {
+  background-color: rgb(11 18 32 / 0.72);
+}
+
+/* Arbitrary light surfaces used by the admin workspace. */
+.glm-theme-scope.dark :is([class*="bg-[#f5f8fc]"]) {
+  background-color: #0f1c30;
+}
+
+/* Hover states used by admin/user chrome that has no explicit dark:hover. */
+.glm-theme-scope.dark :is(.hover\:bg-slate-50:hover, .hover\:bg-slate-100:hover) {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is(.hover\:bg-blue-50:hover, .hover\:bg-blue-50\/60:hover) {
+  background-color: rgb(30 58 138 / 0.35);
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-slate-50"], [class*="hover:bg-slate-100"]):hover {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-white"]):hover {
+  background-color: #1b2940;
+}
+
+.glm-theme-scope.dark :is([class*="hover:bg-["]):hover {
+  background-color: #16273f;
+}
+
+.glm-theme-scope.dark :is([class*="focus:bg-white"]):focus {
+  background-color: #111c2e;
+}
+
+/* Active navigation pills keep an indigo tint in dark scope. */
+.glm-theme-scope.dark a[aria-current="page"]:is(.bg-blue-50) {
+  background-color: rgb(30 58 138 / 0.4);
+  color: #dbeafe;
+}
+
+/* Status/accent tones keep contrast on the darkened surfaces above. */
+.glm-theme-scope.dark :is(.text-blue-800) { color: #bfdbfe; }
+.glm-theme-scope.dark :is(.text-blue-700) { color: #93c5fd; }
+.glm-theme-scope.dark :is(.text-sky-800) { color: #bae6fd; }
+.glm-theme-scope.dark :is(.text-emerald-800) { color: #a7f3d0; }
+.glm-theme-scope.dark :is(.text-green-800, .text-green-700) { color: #bbf7d0; }
+.glm-theme-scope.dark :is(.text-amber-800) { color: #fde68a; }
+.glm-theme-scope.dark :is(.text-rose-800) { color: #fecdd3; }
+.glm-theme-scope.dark :is(.text-rose-700) { color: #fda4af; }
+.glm-theme-scope.dark :is(.text-red-800) { color: #fecaca; }
+.glm-theme-scope.dark :is(.text-teal-700) { color: #99f6e4; }
+
+/* Hairline rings keep contrast on dark surfaces. */
+.glm-theme-scope.dark :is([class*="ring-slate-"], [class*="ring-blue-"], [class*="ring-sky-"], [class*="ring-zinc-"]) {
+  --tw-ring-color: #2b3c55;
+}
+
+.glm-theme-scope.dark :is(input, select, textarea) {
+  color-scheme: dark;
+}
+
+.glm-theme-scope.dark .bg-gradient-to-br,
+.glm-theme-scope.dark .bg-gradient-to-b {
+  background-image: none;
+  background-color: #0f1a2b;
+}
+
+.glm-theme-scope.dark .bg-red-50 { background-color: #321d28; }
+.glm-theme-scope.dark .bg-emerald-50,
+.glm-theme-scope.dark .bg-green-50 { background-color: #12302c; }
+.glm-theme-scope.dark .bg-amber-50 { background-color: #342b1c; }
+.glm-theme-scope.dark .bg-sky-50 { background-color: #122b40; }
+
+.glm-theme-scope.dark :is(.border-red-200, .border-emerald-200, .border-green-200, .border-amber-200, .border-sky-200) {
+  border-color: #40516a;
+}
+
+.glm-theme-scope.dark .leaflet-popup-content-wrapper,
+.glm-theme-scope.dark .leaflet-popup-tip {
+  background: #111c2e;
+  color: #e2e8f0;
+}
+
+.glm-theme-scope.dark .lifemap-popup-title { color: #e5edf8; }
+.glm-theme-scope.dark .lifemap-popup-meta,
+.glm-theme-scope.dark .lifemap-popup-kind,
+.glm-theme-scope.dark .lifemap-popup-category,
+.glm-theme-scope.dark .lifemap-popup-desc { color: #aab8ca; }
+.glm-theme-scope.dark .lifemap-legend,
+.glm-theme-scope.dark .lifemap-fullscreen {
+  background: rgb(17 28 46 / 0.94);
+  border-color: #26364d;
+  color: #e2e8f0;
+}
+.glm-theme-scope.dark .lifemap-legend-title,
+.glm-theme-scope.dark .lifemap-legend-count { color: #9aabc0; }
+.glm-theme-scope.dark .lifemap-legend-count { border-color: #26364d; }
+
+/* ---- GenSan LifeMap markers (Leaflet divIcons) ---- */
+.lifemap-marker-wrap {
+  background: transparent;
+  border: none;
+}
+
+.lifemap-dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+.lifemap-dot--location {
+  background-color: #2563eb;
+}
+
+.lifemap-dot--project {
+  background-color: #16a34a;
+}
+
+.lifemap-dot--facility {
+  background-color: #f97316;
+}
+
+.lifemap-dot--selected {
+  width: 24px;
+  height: 24px;
+  outline: 3px solid rgb(37 99 235 / 0.4);
+  outline-offset: 1px;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.lifemap-popup {
+  min-width: 180px;
+  max-width: 240px;
+}
+
+.lifemap-popup-kind {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.lifemap-badge {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.lifemap-badge--location {
+  background-color: #2563eb;
+}
+
+.lifemap-badge--project {
+  background-color: #16a34a;
+}
+
+.lifemap-badge--facility {
+  background-color: #f97316;
+}
+
+.lifemap-popup-category {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #6b7280;
+}
+
+.lifemap-popup-title {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.lifemap-popup-meta {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.lifemap-popup-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #374151;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lifemap-popup-action {
+  margin-top: 8px;
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #2563eb;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.lifemap-popup-action:hover {
+  background-color: #1d4ed8;
+}
+
+/* ---- Map chrome: legend + fullscreen + scale polish ---- */
+
+.lifemap-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 20px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 12px;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.lifemap-legend-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.lifemap-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lifemap-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+
+.lifemap-legend-dot--location {
+  background-color: #2563eb;
+}
+
+.lifemap-legend-dot--project {
+  background-color: #16a34a;
+}
+
+.lifemap-legend-dot--facility {
+  background-color: #f97316;
+}
+
+.lifemap-legend-count {
+  margin-top: 2px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 4px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.lifemap-fullscreen {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 500;
+  border-radius: 9999px;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.lifemap-fullscreen:hover {
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.leaflet-container .leaflet-control-scale-line {
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.85);
+  font-size: 10px;
+  color: #334155;
+}
+
+/* ---- Mockup-derived decorative surfaces (no photo assets) ---- */
+
+/* Hero: deep-navy night gradient with a faint contour-dot texture,
+   echoing the aerial bay photo's dark left half. */
+.glm-hero-bg {
+  isolation: isolate;
+  position: relative;
+  background: #071425;
+}
+
+.glm-hero-bg::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 auto;
+  width: min(68%, 980px);
+  content: "";
+  background:
+    linear-gradient(90deg, #071425 0%, rgb(7 20 37 / 0.82) 12%, rgb(7 20 37 / 0.22) 60%, rgb(7 20 37 / 0.08) 100%),
+    linear-gradient(0deg, rgb(7 20 37 / 0.28), transparent 50%),
+    url("/images/landing/hero.jpg") center / cover no-repeat;
+}
+
+/* Faint dotted contour texture used on light sections (glance band). */
+.glm-dot-grid {
+  background-image: radial-gradient(circle, rgb(11 28 48 / 0.09) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Category photo-fallback gradients for explore cards (16:9 tops). */
+.glm-photo-location {
+  background: #1e40af url("/images/landing/location.jpg") center 54% / cover no-repeat;
+}
+.glm-photo-project {
+  background: #14532d url("/images/landing/project.jpg") center 54% / cover no-repeat;
+}
+.glm-photo-facility {
+  background: #7c2d12 url("/images/landing/facility.jpg") center 54% / cover no-repeat;
+}
+
+/* Dark stylized map panel for the LifeMap preview band. */
+.glm-map-panel {
+  background:
+    linear-gradient(0deg, rgb(7 20 37 / 0.18), rgb(7 20 37 / 0.08)),
+    url("/images/landing/map.jpg") center / cover no-repeat;
+}
+
+@media (max-width: 640px) {
+  .glm-hero-bg::before {
+    width: 100%;
+    opacity: 0.7;
+    background-position: 62% center;
+  }
+}
+
+/* Subtle motion: hover lifts + entrance fade. Disabled entirely when
+   the user prefers reduced motion. */
+.glm-lift {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.glm-lift:hover {
+  transform: translateY(-2px);
+}
+
+.glm-fade-up {
+  animation: glm-fade-up 560ms ease both;
+}
+.glm-fade-up-1 { animation-delay: 60ms; }
+.glm-fade-up-2 { animation-delay: 140ms; }
+.glm-fade-up-3 { animation-delay: 220ms; }
+
+@keyframes glm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glm-lift,
+  .glm-lift:hover {
+    transform: none;
+    transition: none;
+  }
+  .glm-fade-up,
+  .glm-fade-up-1,
+  .glm-fade-up-2,
+  .glm-fade-up-3 {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
