@@ -87,6 +87,8 @@ function LoginForm() {
   // them at form level, other email problems at the field.
   const credentialFailure =
     emailError && !clientErrors.email ? emailError : null;
+  const passwordError =
+    clientErrors.password ?? firstError(serverErrors, "password");
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
@@ -113,7 +115,7 @@ function LoginForm() {
           disabled={submitting}
         />
       </AuthField>
-      <AuthField id="password" label="Password" error={clientErrors.password}>
+      <AuthField id="password" label="Password" error={passwordError}>
         <PasswordInput
           id="password"
           name="password"
@@ -121,7 +123,7 @@ function LoginForm() {
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          fieldError={clientErrors.password}
+          fieldError={passwordError}
           disabled={submitting}
         />
       </AuthField>

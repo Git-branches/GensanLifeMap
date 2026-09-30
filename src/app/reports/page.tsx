@@ -47,6 +47,15 @@ function MyReportsContent() {
       .finally(() => setLoading(false));
   }, [status, router]);
 
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected]);
+
   async function openReport(id: number) {
     try {
       setSelected(await getMyReport(id));

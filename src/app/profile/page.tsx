@@ -253,7 +253,7 @@ function ProfileContent({ user }: { user: AuthUser }) {
                     type="text"
                     autoComplete="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => { setName(e.target.value); setProfileSaved(false); }}
                     fieldError={firstError(profileErrors, "name")}
                     disabled={savingProfile}
                   />
@@ -265,13 +265,13 @@ function ProfileContent({ user }: { user: AuthUser }) {
                     type="email"
                     autoComplete="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setProfileSaved(false); }}
                     fieldError={firstError(profileErrors, "email")}
                     disabled={savingProfile}
                   />
                 </AuthField>
                 {profileSaved && (
-                  <p role="status" className="text-sm text-green-700 dark:text-green-400">
+                  <p role="status" aria-live="polite" className="text-sm text-green-700 dark:text-green-400">
                     Profile updated.
                   </p>
                 )}
@@ -337,7 +337,7 @@ function ProfileContent({ user }: { user: AuthUser }) {
                 </AuthField>
                 <div className="sm:col-span-3">
                   {passwordSaved && (
-                    <p role="status" className="mb-3 text-sm text-green-700 dark:text-green-400">
+                    <p role="status" aria-live="polite" className="mb-3 text-sm text-green-700 dark:text-green-400">
                       Password changed successfully.
                     </p>
                   )}

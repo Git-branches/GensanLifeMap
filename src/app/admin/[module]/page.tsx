@@ -16,5 +16,5 @@ const MODULES = new Set<ModuleName>([
 export default async function AdminModulePage({ params }: { params: Promise<{ module: string }> }) {
   const { module } = await params;
   if (!MODULES.has(module as ModuleName)) notFound();
-  return <AdminModule module={module as ModuleName} />;
+  return <AdminModule key={module} module={module as ModuleName} />;
 }

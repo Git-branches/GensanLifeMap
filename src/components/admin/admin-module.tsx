@@ -74,10 +74,14 @@ function statusTone(value: unknown) {
 }
 
 function cellValue(key: string, value: unknown) {
-  if (["created_at", "published_at", "last_verified_at"].includes(key)) {
+  if (key.endsWith("_at") || key === "target_completion" || key === "start_date" || key === "expires_at") {
     if (!value) return "—";
     const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" });
+    if (Number.isNaN(date.getTime())) return scalar(value);
+    const hasTime = / [_T]\d{2}:\d{2}/.test(String(value)) || key.endsWith("_at");
+    return hasTime
+      ? date.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })
+      : date.toLocaleDateString("en-PH", { dateStyle: "medium" });
   }
   if (key === "completion_percentage" && typeof value === "number") return `${value}%`;
   return scalar(value);
@@ -110,17 +114,48 @@ export default function AdminModule({ module }: { module: ModuleName }) {
   const [editing, setEditing] = useState<Record<string, unknown> | undefined>(undefined);
   const [filterLocations, setFilterLocations] = useState<{ id: number; name: string; barangay: string | null }[]>([]);
   const [filterSources, setFilterSources] = useState<{ id: number; name: string }[]>([]);
+  // Debounce free-text search so typing doesn't fire a request per keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 350);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const hasActiveFilters = Boolean(search || statusFilter || roleFilter || categoryFilter || areaFilter || typeFilter);
+  function clearFilters() {
+    setSearch("");
+    setStatusFilter("");
+    setRoleFilter("");
+    setCategoryFilter("");
+    setAreaFilter("");
+    setTypeFilter("");
+    setCurrentPage(1);
+  }
+
+  // Escape closes whichever dialog is open; notices clear on new activity.
+  useEffect(() => {
+    if (!selected && editing === undefined) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelected(null);
+        setEditing(undefined);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, editing]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const searchParam = debouncedSearch.trim() || undefined;
       let result: { data: unknown[]; meta: { total: number; last_page: number } };
-      if (module === "community-reports") result = await getAdminReports({ search, status: statusFilter || undefined, category: categoryFilter || undefined, page: currentPage });
-      else if (module === "users") result = await getAdminUsers({ search, role: roleFilter || undefined, page: currentPage });
-      else if (module === "audit-logs") result = await getAdminAuditLogs({ search, entity_type: typeFilter || undefined, action: categoryFilter || undefined, page: currentPage });
+      if (module === "community-reports") result = await getAdminReports({ search: searchParam, status: statusFilter || undefined, category: categoryFilter || undefined, page: currentPage });
+      else if (module === "users") result = await getAdminUsers({ search: searchParam, role: roleFilter || undefined, page: currentPage });
+      else if (module === "audit-logs") result = await getAdminAuditLogs({ search: searchParam, entity_type: typeFilter || undefined, action: categoryFilter || undefined, page: currentPage });
       else result = await getAdminResource(module, {
-        search,
+        search: searchParam,
         status: statusFilter || undefined,
         category: categoryFilter || undefined,
         barangay: areaFilter || undefined,
@@ -136,7 +171,7 @@ export default function AdminModule({ module }: { module: ModuleName }) {
     } finally {
       setLoading(false);
     }
-  }, [module, search, statusFilter, roleFilter, categoryFilter, areaFilter, typeFilter, currentPage]);
+  }, [module, debouncedSearch, statusFilter, roleFilter, categoryFilter, areaFilter, typeFilter, currentPage]);
 
   useEffect(() => { void Promise.resolve().then(load); }, [load]);
   useEffect(() => {
@@ -222,8 +257,8 @@ export default function AdminModule({ module }: { module: ModuleName }) {
       <div className="mt-4 rounded-xl border border-slate-200/90 bg-white p-3 shadow-sm sm:p-4"><div className="flex flex-col gap-2.5 xl:flex-row"><label className="relative min-w-0 flex-1"><span className="sr-only">Search {TITLES[module]}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg><input value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder={`Search ${TITLES[module].toLowerCase()}…`} className="min-h-10 w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-xs outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" /></label><div className="flex flex-wrap gap-2">{module === "users" && <select value={roleFilter} onChange={(event) => { setRoleFilter(event.target.value); setCurrentPage(1); }} aria-label="Filter users by role" className="min-h-10 min-w-32 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"><option value="">All roles</option>{ROLES.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select>}{hasStatusFilter && <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setCurrentPage(1); }} aria-label="Filter by status" className="min-h-10 min-w-36 rounded-lg border border-slate-200 bg-white px-3 text-xs capitalize text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"><option value="">All statuses</option>{(module === "community-reports" ? Object.keys(STATUSES) : module === "announcements" ? ["draft", "published", "archived"] : PROJECT_STATUSES.map((status) => status.value)).map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select>}</div></div>
       {(module === "locations" || module === "projects" || module === "facilities" || module === "announcements" || module === "community-reports" || module === "data-sources" || module === "audit-logs") && <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{["projects", "facilities", "announcements", "community-reports", "audit-logs"].includes(module) && <input aria-label={module === "audit-logs" ? "Filter audit action" : "Filter category"} value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setCurrentPage(1); }} placeholder={module === "audit-logs" ? "Action filter…" : "Category filter…"} className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />}{["locations", "projects", "facilities"].includes(module) && <input aria-label="Filter by barangay" value={areaFilter} onChange={(event) => { setAreaFilter(event.target.value); setCurrentPage(1); }} placeholder="Barangay filter…" className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />}{["locations", "data-sources", "audit-logs"].includes(module) && <input aria-label={module === "audit-logs" ? "Filter audit resource" : module === "data-sources" ? "Filter source type" : "Filter location type"} value={typeFilter} onChange={(event) => { setTypeFilter(event.target.value); setCurrentPage(1); }} placeholder={module === "audit-logs" ? "Resource type filter…" : module === "data-sources" ? "Source type filter…" : "Location type filter…"} className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />}</div>}
       </div>
-      <div className="mt-3 flex items-center justify-between px-1 text-[11px] text-slate-500"><span>{loading ? "Loading records…" : <><span className="font-semibold tabular-nums text-slate-700">{total}</span> {TITLES[module].toLowerCase()}</>}</span><button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[11px] font-semibold text-slate-600 transition hover:bg-white hover:text-blue-800 disabled:opacity-50"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M20 7v5h-5 M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 12-2L20 12M4 12l2.5 5a7 7 0 0 0 12-2"/></svg>Refresh</button></div>
-      {notice && <p role="status" className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}{error && <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+      <div className="mt-3 flex items-center justify-between px-1 text-[11px] text-slate-500"><span aria-live="polite">{loading ? "Loading records…" : <><span className="font-semibold tabular-nums text-slate-700">{total}</span> {TITLES[module].toLowerCase()}</>}</span><div className="flex items-center gap-1">{hasActiveFilters && !loading && <button type="button" onClick={clearFilters} className="inline-flex min-h-8 items-center rounded-lg px-2 text-[11px] font-semibold text-blue-800 transition hover:bg-white">Clear filters</button>}<button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2 text-[11px] font-semibold text-slate-600 transition hover:bg-white hover:text-blue-800 disabled:opacity-50"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5"><path d="M20 7v5h-5 M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 12-2L20 12M4 12l2.5 5a7 7 0 0 0 12-2"/></svg>Refresh</button></div></div>
+      {notice && <p role="status" className="mt-3 flex items-start justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><span>{notice}</span><button type="button" onClick={() => setNotice(null)} aria-label="Dismiss message" className="shrink-0 rounded-md px-2 py-0.5 font-bold hover:bg-emerald-100">×</button></p>}{error && <p role="alert" className="mt-3 flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><span>{error}</span><button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="shrink-0 rounded-md px-2 py-0.5 font-bold hover:bg-red-100">×</button></p>}
       <section aria-label={TITLES[module]} className="mt-3 flex min-h-0 flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 lg:flex-1">
         {loading ? <div className="space-y-3 p-5">{[0, 1, 2].map((key) => <div key={key} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}</div> : rows.length === 0 ? <div className="p-10 text-center"><h2 className="font-semibold text-slate-900">No {TITLES[module].toLowerCase()} found</h2><p className="mt-1 text-sm text-slate-500">Try another search or add a record if you have permission.</p></div> : <>
           <div className="hidden min-h-0 overflow-x-auto md:block md:flex-1 md:overflow-y-auto"><table className="w-full min-w-[760px] border-collapse text-left text-[12px]"><thead className="sticky top-0 z-10 bg-[#f5f8fc] text-[10px] uppercase tracking-[0.12em] text-slate-500"><tr>{selectedColumns.map((key) => <th key={key} className="border-b border-slate-200 px-4 py-3.5 font-bold">{key.replaceAll("_", " ")}</th>)}<th className="border-b border-slate-200 px-4 py-3.5 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row) => <tr key={String(row.id)} className="group transition-colors hover:bg-[#f8fbff]">{selectedColumns.map((key) => <td key={key} className="max-w-72 px-4 py-3.5 text-slate-700">{key === "status" ? <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold capitalize ring-1 ring-inset ${statusTone(row[key])}`}>{scalar(row[key])}</span> : <span className="block truncate">{cellValue(key, row[key])}</span>}</td>)}<td className="whitespace-nowrap px-4 py-3 text-right"><div className="flex items-center justify-end gap-1"><button type="button" onClick={() => setSelected(row)} className="rounded-md px-2 py-1.5 text-[11px] font-bold text-blue-800 hover:bg-blue-50">View</button>{fields.length > 0 && canManage && <><button type="button" onClick={() => { setError(null); setEditing(row); }} className="rounded-md px-2 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100">Edit</button><button type="button" onClick={() => void deleteRecord(row)} className="rounded-md px-2 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-50">Delete</button></>}{module === "community-reports" && <select aria-label={`Update report ${String(row.id)} status`} value={String(row.status)} onChange={(event) => void changeReportStatus(row, event.target.value)} className="max-w-32 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold capitalize text-slate-700 outline-none focus:border-blue-400">{Object.entries(STATUSES).map(([value, label]) => <option key={value} value={value} disabled={!nextStatuses(String(row.status)).includes(value as CommunityReportStatus)}>{label}</option>)}</select>}{module === "users" && canManage && <select aria-label={`Change role for ${String(row.name)}`} value={String(row.role)} onChange={(event) => void changeRole(row, event.target.value)} className="max-w-32 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold capitalize text-slate-700 outline-none focus:border-blue-400">{ROLES.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select>}</div></td></tr>)}</tbody></table></div>
@@ -232,7 +267,7 @@ export default function AdminModule({ module }: { module: ModuleName }) {
       </section>
       {!loading && lastPage > 1 && <nav aria-label="List pages" className="mt-4 flex items-center justify-between rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"><p className="text-sm text-slate-600">Page {currentPage} of {lastPage}</p><div className="flex gap-2"><button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="min-h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 disabled:opacity-40">Previous</button><button type="button" disabled={currentPage >= lastPage} onClick={() => setCurrentPage((page) => Math.min(lastPage, page + 1))} className="min-h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 disabled:opacity-40">Next</button></div></nav>}
 
-      {selected && <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35 sm:items-center sm:p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section role="dialog" aria-modal="true" aria-labelledby="admin-detail-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-2xl sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-blue-700">{TITLES[module]}</p><h2 id="admin-detail-title" className="mt-1 text-xl font-bold text-slate-900">{titleOf(selected)}</h2></div><button type="button" autoFocus onClick={() => setSelected(null)} className="min-h-10 rounded-full border border-slate-300 px-4 text-sm font-semibold">Close</button></div><dl className="mt-5 divide-y divide-slate-100">{Object.entries(selected).filter(([key]) => !["id", "photo_path", "user"].includes(key)).map(([key, value]) => <div key={key} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{key.replaceAll("_", " ")}</dt><dd className="break-words text-sm text-slate-800">{scalar(value)}</dd></div>)}{selected.user !== undefined && selected.user !== null && <div className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted by</dt><dd className="text-sm text-slate-800">{scalar(selected.user)}</dd></div>}</dl></section></div>}
+      {selected && <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35 sm:items-center sm:p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section role="dialog" aria-modal="true" aria-labelledby="admin-detail-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-2xl sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-blue-700">{TITLES[module]}</p><h2 id="admin-detail-title" className="mt-1 text-xl font-bold text-slate-900">{titleOf(selected)}</h2></div><button type="button" autoFocus onClick={() => setSelected(null)} className="min-h-10 rounded-full border border-slate-300 px-4 text-sm font-semibold">Close</button></div><dl className="mt-5 divide-y divide-slate-100">{Object.entries(selected).filter(([key]) => !["id", "photo_path", "user"].includes(key)).map(([key, value]) => <div key={key} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{key.replaceAll("_", " ")}</dt><dd className="break-words text-sm text-slate-800">{cellValue(key, value)}</dd></div>)}{selected.user !== undefined && selected.user !== null && <div className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]"><dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted by</dt><dd className="text-sm text-slate-800">{scalar(selected.user)}</dd></div>}</dl></section></div>}
 
       {editing !== undefined && fields.length > 0 && <AdminEditDialog module={module as ManagedResource} fields={fields} record={editing} onClose={() => setEditing(undefined)} onSave={save} />}
     </div>
