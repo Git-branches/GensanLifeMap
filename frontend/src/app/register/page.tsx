@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Account-creation page. Same AuthShell visual language as sign-in.
+ * Account-creation page. Same light-only AuthShell as sign-in.
  * Creates a citizen account and signs the new account in immediately.
  * Duplicate emails surface as a friendly field-level message.
  */
@@ -49,13 +49,13 @@ export default function RegisterPage() {
         switchPrompt={
           <>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-blue-700 hover:underline dark:text-blue-400">
+            <Link href="/login" className="font-medium text-blue-700 hover:underline">
               Sign in
             </Link>
           </>
         }
       >
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-slate-600">
           You are already signed in. Redirecting…
         </p>
       </AuthShell>
@@ -112,81 +112,81 @@ export default function RegisterPage() {
       switchPrompt={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-blue-700 hover:underline dark:text-blue-400">
-            Sign in
-          </Link>
-        </>
-      }
-    >
-      <form onSubmit={onSubmit} noValidate className="space-y-4">
-        {formError && (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-            {formError}
-          </p>
-        )}
-        <AuthField id="name" label="Full name" error={field("name")}>
-          <AuthInput
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            placeholder="Juan Dela Cruz"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fieldError={field("name")}
-            disabled={submitting}
-          />
-        </AuthField>
-        <AuthField id="email" label="Email address" error={field("email")}>
-          <AuthInput
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.ph"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fieldError={field("email")}
-            disabled={submitting}
-          />
-        </AuthField>
-        <AuthField
-          id="password"
-          label="Password"
-          error={field("password")}
-          hint="At least 8 characters."
-        >
-          <PasswordInput
+            <Link href="/login" className="font-medium text-blue-700 hover:underline">
+              Sign in
+            </Link>
+          </>
+        }
+      >
+        <form onSubmit={onSubmit} noValidate className="space-y-4">
+          {formError && (
+            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              {formError}
+            </p>
+          )}
+          <AuthField id="name" label="Full name" error={field("name")}>
+            <AuthInput
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              placeholder="Juan Dela Cruz"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              fieldError={field("name")}
+              disabled={submitting}
+            />
+          </AuthField>
+          <AuthField id="email" label="Email address" error={field("email")}>
+            <AuthInput
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.ph"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fieldError={field("email")}
+              disabled={submitting}
+            />
+          </AuthField>
+          <AuthField
             id="password"
-            name="password"
-            autoComplete="new-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fieldError={field("password")}
-            disabled={submitting}
-          />
-        </AuthField>
-        <AuthField
-          id="password_confirmation"
-          label="Confirm password"
-          error={field("password_confirmation")}
-        >
-          <PasswordInput
+            label="Password"
+            error={field("password")}
+            hint="At least 8 characters."
+          >
+            <PasswordInput
+              id="password"
+              name="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              fieldError={field("password")}
+              disabled={submitting}
+            />
+          </AuthField>
+          <AuthField
             id="password_confirmation"
-            name="password_confirmation"
-            autoComplete="new-password"
-            placeholder="••••••••"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            fieldError={field("password_confirmation")}
-            disabled={submitting}
-          />
-        </AuthField>
-        <Button type="submit" variant="primary" size="md" disabled={submitting} className="w-full">
-          {submitting ? "Creating your account…" : "Create Account"}
-        </Button>
-      </form>
+            label="Confirm password"
+            error={field("password_confirmation")}
+          >
+            <PasswordInput
+              id="password_confirmation"
+              name="password_confirmation"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              fieldError={field("password_confirmation")}
+              disabled={submitting}
+            />
+          </AuthField>
+          <Button type="submit" variant="primary" size="md" disabled={submitting} className="w-full">
+            {submitting ? "Creating your account…" : "Create Account"}
+          </Button>
+        </form>
     </AuthShell>
   );
 }

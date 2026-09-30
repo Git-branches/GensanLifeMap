@@ -70,15 +70,15 @@ export default function NewReportPage() {
 
   return (
     <ScopedThemeProvider scope="user">
-    <div className="flex min-h-full flex-col bg-slate-50 font-sans transition-colors dark:bg-slate-950">
+    <div className="flex min-h-full flex-col bg-[#f3f7fb] font-sans text-slate-800 dark:bg-slate-950 dark:text-slate-200">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
-        <Link href="/reports" className="text-sm font-semibold text-blue-700 hover:underline dark:text-blue-300">← My reports</Link>
-        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="border-b border-slate-100 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-900/70 sm:p-7"><p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">Community participation</p><h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">Submit a community report</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">Share an issue in General Santos City. Your report will be submitted for review; you can track its status in My Reports.</p></div>
-          <div className="p-5 sm:p-7">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 sm:px-6 lg:py-6">
+        <Link href="/reports" className="text-sm font-semibold text-blue-800 hover:underline dark:text-blue-300">← My reports</Link>
+        <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/90 dark:bg-slate-900 dark:ring-slate-800">
+          <div className="border-b border-slate-100 bg-[#f5f8fc] p-5 dark:border-slate-800 dark:bg-slate-900/70 sm:p-6"><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-blue-800 dark:text-blue-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />Community participation</p><h1 className="mt-2 text-[26px] font-bold tracking-tight text-slate-900 dark:text-slate-100">Submit a community report</h1><p className="mt-1 max-w-2xl text-[13px] leading-5 text-slate-600 dark:text-slate-400">Share an issue in General Santos City. Your report will be submitted for review; you can track its status in My Reports.</p></div>
+          <div className="p-5 sm:p-6">
           {error && <p role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/60 dark:text-red-200">{error}</p>}
-          <form onSubmit={onSubmit} noValidate className="mt-7 space-y-5">
+          <form onSubmit={onSubmit} noValidate className="space-y-5">
             <div>
               <label htmlFor="report-location" className="block text-sm font-semibold text-slate-800 dark:text-slate-200">Location</label>
               <select id="report-location" className={control} value={locationId} onChange={(event) => setLocationId(event.target.value)} disabled={loadingLocations || submitting} aria-invalid={Boolean(errorFor("location_id"))}>

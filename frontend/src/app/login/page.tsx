@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Sign-in page. Phase 5 visual language via AuthShell (navy + General
- * Santos imagery, blue CTA). Generic failure message for bad
+ * Sign-in page. Light-only AuthShell matching the admin-dashboard
+ * palette (no dark mode). Generic failure message for bad
  * credentials (no account enumeration); field-level messages only for
  * validation problems. Redirects to `?next=` or /profile on success.
  */
@@ -40,7 +40,7 @@ function LoginForm() {
 
   if (status === "authenticated") {
     return (
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-sm text-slate-600">
         You are already signed in. Redirecting…
       </p>
     );
@@ -93,12 +93,12 @@ function LoginForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       {formError && (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {formError}
         </p>
       )}
       {credentialFailure && (
-        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {credentialFailure}
         </p>
       )}
@@ -138,8 +138,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-full flex-1 items-center justify-center bg-slate-50 px-4 py-10">
-          <p className="text-sm text-zinc-600">Loading sign-in…</p>
+        <main className="flex min-h-full flex-1 items-center justify-center bg-[#f3f7fb] px-4 py-10">
+          <p className="text-sm text-slate-600">Loading sign-in…</p>
         </main>
       }
     >
@@ -149,24 +149,19 @@ export default function LoginPage() {
 }
 
 /**
- * Staff sign-ins (`/login?next=/admin…`) read/write the admin theme so the
- * preference carries over to the admin workspace; everyone else uses the
- * user theme. The two keys are independent.
+ * Light-only sign-in shell. No theme scope is read or written here —
+ * the login surface never renders a dark-mode toggle.
  */
 function LoginShell() {
-  const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next");
-  const themeScope = nextPath?.startsWith("/admin") ? "admin" : "user";
   return (
     <AuthShell
-      themeScope={themeScope}
       eyebrow="Welcome back"
       title="Sign in to LifeMap"
       subtitle="Access your GenSan LifeMap account."
       switchPrompt={
         <>
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium text-blue-700 hover:underline dark:text-blue-400">
+          <Link href="/register" className="font-medium text-blue-700 hover:underline">
             Create an account
           </Link>
         </>
