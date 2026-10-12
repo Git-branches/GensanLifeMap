@@ -2,10 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
-import { buttonClasses } from "./ui/button";
 import { ArrowRightIcon } from "./ui/icons";
 import { Card } from "./ui/card";
-import { Container, PageHeader } from "./ui/layout";
+import { Container, PageBand, PageHeader } from "./ui/layout";
 
 /**
  * Shared chrome for public record detail pages (/locations/[id] etc.).
@@ -39,13 +38,13 @@ export default function DetailShell({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
-      <main className="flex-1 py-10">
-        <Container>
+      <main className="flex-1">
+        <PageBand>
           <Link
             href={backHref}
-            className={buttonClasses("link", "md", "mb-4 inline-flex flex-row-reverse")}
+            className="mb-4 inline-flex flex-row-reverse items-center gap-1.5 rounded-full text-sm font-semibold text-sky-300 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             <span className="inline-block rotate-180">
               <ArrowRightIcon />
@@ -53,11 +52,14 @@ export default function DetailShell({
             {backLabel}
           </Link>
           <PageHeader
+            onDark
             eyebrow={eyebrow}
             title={title}
             {...(subtitle ? { description: subtitle } : {})}
           />
-          <Card className="mt-6 sm:p-6">
+        </PageBand>
+        <Container className="py-10">
+          <Card className="sm:p-6">
             {children}
           </Card>
         </Container>

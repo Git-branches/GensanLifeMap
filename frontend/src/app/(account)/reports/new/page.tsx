@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import SiteFooter from "@/components/site-footer";
-import SiteHeader from "@/components/site-header";
 import { useAuth } from "@/components/auth-provider";
-import { ScopedThemeProvider } from "@/components/theme-provider";
 import { getLocations } from "@/lib/api/locations";
 import { createCommunityReport } from "@/lib/api/community-reports";
 import { ApiError, getFriendlyErrorMessage } from "@/lib/api/client";
@@ -69,12 +66,8 @@ export default function NewReportPage() {
   const control = "mt-1 block min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-900";
 
   return (
-    <ScopedThemeProvider scope="user">
-    <div className="flex min-h-full flex-col bg-[#f3f7fb] font-sans text-slate-800 dark:bg-slate-950 dark:text-slate-200">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-5 sm:px-6 lg:py-6">
-        <Link href="/reports" className="text-sm font-semibold text-blue-800 hover:underline dark:text-blue-300">← My reports</Link>
-        <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/90 dark:bg-slate-900 dark:ring-slate-800">
+    <div className="mx-auto max-w-3xl">
+        <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/90 dark:bg-slate-900 dark:ring-slate-800">
           <div className="border-b border-slate-100 bg-[#f5f8fc] p-5 dark:border-slate-800 dark:bg-slate-900/70 sm:p-6"><p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-blue-800 dark:text-blue-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />Community participation</p><h1 className="mt-2 text-[26px] font-bold tracking-tight text-slate-900 dark:text-slate-100">Submit a community report</h1><p className="mt-1 max-w-2xl text-[13px] leading-5 text-slate-600 dark:text-slate-400">Share an issue in General Santos City. Your report will be submitted for review; you can track its status in My Reports.</p></div>
           <div className="p-5 sm:p-6">
           {error && <p role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/60 dark:text-red-200">{error}</p>}
@@ -112,9 +105,6 @@ export default function NewReportPage() {
           </form>
           </div>
         </div>
-      </main>
-      <SiteFooter />
-    </div>
-    </ScopedThemeProvider>
+      </div>
   );
 }

@@ -141,7 +141,7 @@ export default async function ApiStatusPage() {
   const dataSources = settle<DataSource>(src);
 
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-10">
         <div className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">

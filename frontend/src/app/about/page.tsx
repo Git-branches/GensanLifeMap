@@ -1,10 +1,9 @@
 import Link from "next/link";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
-import { buttonClasses } from "@/components/ui/button";
 import { Card, CardText, CardTitle } from "@/components/ui/card";
 import { AnnounceIcon, DatabaseIcon, FacilityIcon, MapIcon, PinIcon, ProjectIcon } from "@/components/ui/icons";
-import { Container, PageHeader, Section } from "@/components/ui/layout";
+import { Container, PageBand, PageHeader, Section } from "@/components/ui/layout";
 
 /**
  * About GenSan LifeMap: what the platform is, what it covers, and
@@ -45,26 +44,26 @@ const COVERAGE = [
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <main className="flex-1">
-        <Container>
-          <div className="py-10">
-            <PageHeader
-              eyebrow="About"
-              title="A public window into General Santos City"
-              description="GenSan LifeMap is a public information platform that brings together listed records about places, public projects, community facilities, and announcements — browsable as lists and explorable on one interactive city map."
-            />
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/lifemap" className={buttonClasses("primary")}>
-                Explore LifeMap
-              </Link>
-              <Link href="/data-sources" className={buttonClasses("secondary")}>
-                View Data Sources
-              </Link>
-            </div>
+        <PageBand>
+          <PageHeader
+            onDark
+            eyebrow="About"
+            title="A public window into General Santos City"
+            description="GenSan LifeMap is a public information platform that brings together listed records about places, public projects, community facilities, and announcements — browsable as lists and explorable on one interactive city map."
+          />
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/lifemap" className="inline-flex items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              Explore LifeMap
+            </Link>
+            <Link href="/data-sources" className="inline-flex items-center justify-center rounded-full border border-white/60 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              View Data Sources
+            </Link>
           </div>
-
+        </PageBand>
+        <Container className="py-4">
           <Section
             id="coverage-heading"
             title="What the platform covers"

@@ -77,8 +77,8 @@ function joinMeta(...parts: (string | null | undefined)[]) {
   return parts.filter(Boolean).join(" · ") || null;
 }
 
-function Eyebrow({ children }: { children: ReactNode }) {
-  return <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">{children}</p>;
+function Eyebrow({ children, onDark = false }: { children: ReactNode; onDark?: boolean }) {
+  return <p className={`text-xs font-bold uppercase tracking-[0.16em] ${onDark ? "text-amber-400" : "text-blue-700"}`}>{children}</p>;
 }
 
 function IconTile({ tone, children }: { tone: Tone; children: ReactNode }) {
@@ -247,7 +247,7 @@ export default async function Home() {
   ] satisfies { tone: Tone; icon: ReactNode; title: string; text: string; href: string; total: number | undefined; rows: PreviewRow[] }[];
 
   return (
-    <div className="flex min-h-full flex-col bg-white font-sans">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <main className="flex-1">
         {/* Hero */}
@@ -307,7 +307,7 @@ export default async function Home() {
         </section>
 
         {/* At a glance */}
-        <section aria-labelledby="glance-title" className="bg-white py-16 sm:py-20">
+        <section aria-labelledby="glance-title" className="bg-sky-100 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
               <div>
@@ -338,7 +338,7 @@ export default async function Home() {
         </section>
 
         {/* Explore */}
-        <section id="explore" aria-labelledby="explore-title" className="scroll-mt-20 bg-slate-50 py-16 sm:py-20">
+        <section id="explore" aria-labelledby="explore-title" className="scroll-mt-20 bg-sky-50 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
               <div>
@@ -357,7 +357,7 @@ export default async function Home() {
         </section>
 
         {/* Map preview */}
-        <section aria-labelledby="map-title" className="bg-white py-16 sm:py-20">
+        <section aria-labelledby="map-title" className="bg-sky-100 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div className="max-w-2xl">
@@ -371,25 +371,25 @@ export default async function Home() {
                 <MapIcon /> Open LifeMap
               </Link>
             </div>
-            <div className="mt-8 h-96 overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-sm sm:h-120">
+            <div className="mt-8 h-96 overflow-hidden rounded-3xl border-4 border-white bg-sky-200 shadow-lg shadow-blue-900/10 sm:h-120">
               <HomepageMap items={mapItems} />
             </div>
           </div>
         </section>
 
         {/* Why */}
-        <section aria-labelledby="why-title" className="bg-sky-50 py-16 sm:py-20">
+        <section aria-labelledby="why-title" className="bg-blue-950 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="max-w-2xl">
-              <Eyebrow>Why GenSan LifeMap</Eyebrow>
-              <h2 id="why-title" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Useful city information, made easier to navigate.</h2>
+              <Eyebrow onDark>Why GenSan LifeMap</Eyebrow>
+              <h2 id="why-title" className="mt-2 text-3xl font-bold tracking-tight text-white">Useful city information, made easier to navigate.</h2>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {PRINCIPLES.map((item) => (
-                <article key={item.title} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-sky-100">
-                  <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-700 text-white">{item.icon}</span>
-                  <h3 className="mt-4 font-semibold text-slate-900">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+                <article key={item.title} className="rounded-2xl bg-white/5 p-6 ring-1 ring-white/15">
+                  <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-400/15 text-sky-300">{item.icon}</span>
+                  <h3 className="mt-4 font-semibold text-white">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-blue-100">{item.text}</p>
                 </article>
               ))}
             </div>
@@ -397,7 +397,7 @@ export default async function Home() {
         </section>
 
         {/* Announcements */}
-        <section aria-labelledby="announcements-title" className="bg-white py-16 sm:py-20">
+        <section aria-labelledby="announcements-title" className="bg-sky-50 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="flex items-end justify-between gap-4">
               <div>
@@ -413,7 +413,7 @@ export default async function Home() {
                 {announcements.map((item) => <AnnouncementCard key={item.id} item={item} />)}
               </div>
             ) : (
-              <div className="mt-8 flex items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
+              <div className="mt-8 flex items-center gap-4 rounded-2xl border border-dashed border-sky-300 bg-white/60 p-6">
                 <IconTile tone="announcement"><AnnounceIcon /></IconTile>
                 <p className="text-sm text-slate-600">No published announcements are currently available.</p>
               </div>
@@ -422,7 +422,7 @@ export default async function Home() {
         </section>
 
         {/* Closing call to action */}
-        <section aria-labelledby="cta-title" className="bg-white pb-16 sm:pb-20">
+        <section aria-labelledby="cta-title" className="bg-sky-50 pb-16 sm:pb-20">
           <div className="mx-auto max-w-6xl px-4">
             <div className="relative isolate overflow-hidden rounded-3xl bg-linear-to-br from-blue-700 to-blue-900 px-6 py-12 text-white sm:px-12 sm:py-14">
               <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl" />

@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/states";
  */
 export default function MapLoading() {
   return (
-    <div className="flex h-dvh flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex h-dvh flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="flex min-h-0 flex-1 flex-col space-y-3 p-4 lg:w-[380px] lg:flex-none">

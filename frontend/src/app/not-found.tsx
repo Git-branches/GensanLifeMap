@@ -6,7 +6,7 @@ import { buttonClasses } from "@/components/ui/button";
 /** Branded 404 rendered by `notFound()` (e.g. unknown record ids). */
 export default function NotFound() {
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4 py-16 text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-blue-700 dark:text-blue-400">

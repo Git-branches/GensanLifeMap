@@ -50,7 +50,7 @@ export default async function MapPage({
       (failures[0] as PromiseRejectedResult).reason,
     );
     return (
-      <div className="flex h-dvh flex-col bg-zinc-50 font-sans dark:bg-black">
+      <div className="flex h-dvh flex-col bg-sky-50 font-sans">
         <SiteHeader />
         <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-4">
           <div className="w-full text-center">
@@ -85,7 +85,7 @@ export default async function MapPage({
   ].filter((k): k is string => k !== null);
 
   return (
-    <div className="flex h-dvh flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex h-dvh flex-col bg-sky-50 font-sans">
       <SiteHeader />
       <LifeMap
         items={items}

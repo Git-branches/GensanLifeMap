@@ -4,7 +4,7 @@
  * Sign-in page. Light-only AuthShell matching the admin-dashboard
  * palette (no dark mode). Generic failure message for bad
  * credentials (no account enumeration); field-level messages only for
- * validation problems. Redirects to `?next=` or /profile on success.
+ * validation problems. Redirects to `?next=` or /dashboard on success.
  */
 
 import Link from "next/link";
@@ -26,7 +26,7 @@ function LoginForm() {
   const safeNextPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : null;
   const redirectTo = user?.role === "admin" || user?.role === "moderator"
     ? safeNextPath?.startsWith("/admin") ? safeNextPath : "/admin"
-    : safeNextPath ?? "/profile";
+    : safeNextPath ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [clientErrors, setClientErrors] = useState<{ email?: string; password?: string }>({});
@@ -62,7 +62,7 @@ function LoginForm() {
       const account = await signIn({ email: email.trim(), password });
       const destination = account.role === "admin" || account.role === "moderator"
         ? safeNextPath?.startsWith("/admin") ? safeNextPath : "/admin"
-        : safeNextPath ?? "/profile";
+        : safeNextPath ?? "/dashboard";
       router.replace(destination);
       router.refresh();
     } catch (error) {

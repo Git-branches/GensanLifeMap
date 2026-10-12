@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
-import { Container, PageHeader } from "./ui/layout";
+import { Container, PageBand, PageHeader } from "./ui/layout";
 import { EmptyState, ErrorState } from "./ui/states";
 
 /**
@@ -34,30 +34,26 @@ export default function CollectionPage({
       : description;
 
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex min-h-full flex-col bg-sky-50 font-sans">
       <SiteHeader />
-      <main className="flex-1 py-10">
-        <Container>
+      <main className="flex-1">
+        <PageBand>
           <PageHeader
+            onDark
             eyebrow={totalLabel}
             title={title}
             description={fullDescription}
           />
-
+        </PageBand>
+        <Container className="py-10">
           {error && (
-            <div className="mt-6">
-              <ErrorState message={error} />
-            </div>
+            <ErrorState message={error} />
           )}
 
-          {!error && isEmpty && (
-            <div className="mt-6">
-              <EmptyState title={emptyMessage} />
-            </div>
-          )}
+          {!error && isEmpty && <EmptyState title={emptyMessage} />}
 
           {!error && !isEmpty && (
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {children}
             </div>
           )}

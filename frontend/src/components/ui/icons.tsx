@@ -154,6 +154,22 @@ export function CompassIcon() {
   );
 }
 
+export function GridIcon() {
+  return (
+    <Svg>
+      <path d="M3.5 3.5h5.5v5.5H3.5zM11 3.5h5.5v5.5H11zM3.5 11H9v5.5H3.5zM11 11h5.5v5.5H11z" {...stroke} />
+    </Svg>
+  );
+}
+
+export function LogoutIcon() {
+  return (
+    <Svg>
+      <path d="M8 17H4.5A1.5 1.5 0 0 1 3 15.5v-11A1.5 1.5 0 0 1 4.5 3H8M12.5 6.5 16 10l-3.5 3.5M16 10H7.5" {...stroke} />
+    </Svg>
+  );
+}
+
 export function ShieldIcon() {
   return (
     <Svg>

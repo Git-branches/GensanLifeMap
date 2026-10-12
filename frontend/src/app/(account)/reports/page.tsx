@@ -3,28 +3,20 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import SiteFooter from "@/components/site-footer";
-import SiteHeader from "@/components/site-header";
+import { REPORT_STATUS_LABELS, ReportStatusPill } from "@/components/account/report-status";
 import { useAuth } from "@/components/auth-provider";
-import { ScopedThemeProvider } from "@/components/theme-provider";
 import { getFriendlyErrorMessage } from "@/lib/api";
 import { getMyReport, getMyReports } from "@/lib/api/community-reports";
 import type { CommunityReport, CommunityReportStatus } from "@/types/community-report";
 
-const STATUS_LABELS: Record<CommunityReportStatus, string> = {
-  submitted: "Submitted",
-  under_review: "Under review",
-  verified: "Verified",
-  resolved: "Resolved",
-  rejected: "Rejected",
-};
+const STATUS_LABELS = REPORT_STATUS_LABELS;
 
 function dateLabel(value: string) {
   return new Date(value).toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function MyReportsPage() {
-  return <ScopedThemeProvider scope="user"><Suspense fallback={<p className="p-8 text-center text-sm text-slate-600">Loading your reports…</p>}><MyReportsContent /></Suspense></ScopedThemeProvider>;
+  return <Suspense fallback={<p className="p-8 text-center text-sm text-slate-600">Loading your reports…</p>}><MyReportsContent /></Suspense>;
 }
 
 function MyReportsContent() {
@@ -71,13 +63,12 @@ function MyReportsContent() {
   });
 
   return (
-    <div className="flex min-h-full flex-col bg-[#f3f7fb] font-sans text-slate-800 dark:bg-slate-950 dark:text-slate-200">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+    <>
+      <div>
         <div className="flex flex-col justify-between gap-4 border-b border-slate-200/80 pb-5 sm:flex-row sm:items-end dark:border-slate-800">
           <div>
-            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-blue-800 dark:text-blue-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />General Santos City · Resident workspace</p>
-            <h1 className="mt-2 text-[28px] font-bold tracking-tight text-slate-900 dark:text-slate-100">My community reports</h1>
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-blue-800 dark:text-blue-300"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />General Santos City · My reports</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl text-slate-900 dark:text-slate-100">My community reports</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">Track the review progress of issues you have submitted to the city.</p>
           </div>
           <Link href="/reports/new" className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg bg-blue-700 px-4 text-xs font-bold text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 sm:self-auto"><span className="text-base leading-none">+</span>Submit a report</Link>
@@ -103,9 +94,7 @@ function MyReportsContent() {
                   <button type="button" onClick={() => void openReport(report.id)} className="flex min-h-[76px] w-full items-center gap-4 px-4 py-3.5 text-left transition hover:bg-blue-50/60 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-blue-600 dark:hover:bg-slate-800/60 sm:px-5">
                     <span aria-hidden="true" className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 sm:flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8l-5-5H8Z M14 3v6h7 M7 13h10 M7 17h7"/></svg></span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{report.title}</span><span className="mt-1 block truncate text-xs text-slate-500 dark:text-slate-400">{report.category.replaceAll("_", " ")} <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>{report.location?.name ?? "Location unavailable"}{report.location?.barangay ? `, ${report.location.barangay}` : ""}<span className="mx-1 text-slate-300 dark:text-slate-600">·</span>{dateLabel(report.created_at)}</span></span>
-                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ring-inset ${report.status === "resolved" ? "bg-emerald-50 text-emerald-800 ring-emerald-100 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-900" : report.status === "rejected" ? "bg-rose-50 text-rose-800 ring-rose-100 dark:bg-rose-950 dark:text-rose-200 dark:ring-rose-900" : report.status === "under_review" || report.status === "verified" ? "bg-amber-50 text-amber-800 ring-amber-100 dark:bg-amber-950 dark:text-amber-200 dark:ring-amber-900" : "bg-sky-50 text-sky-800 ring-sky-100 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-900"}`}>
-                      {STATUS_LABELS[report.status]}
-                    </span>
+                    <ReportStatusPill status={report.status} />
                     <span aria-hidden="true" className="text-slate-400">›</span>
                   </button>
                 </li>
@@ -113,8 +102,7 @@ function MyReportsContent() {
             </ul>
           )}
         </section>
-      </main>
-      <SiteFooter />
+      </div>
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35 p-0 sm:items-center sm:p-5" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}>
@@ -133,6 +121,6 @@ function MyReportsContent() {
           </section>
         </div>
       )}
-    </div>
+    </>
   );
 }

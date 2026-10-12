@@ -37,7 +37,7 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated") router.replace("/profile");
+    if (status === "authenticated") router.replace("/dashboard");
   }, [status, router]);
 
   if (status === "authenticated") {
@@ -85,7 +85,7 @@ export default function RegisterPage() {
         password,
         password_confirmation: confirm,
       });
-      router.replace("/profile");
+      router.replace("/dashboard");
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError && error.code === "VALIDATION_ERROR") {
