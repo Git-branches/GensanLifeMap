@@ -54,13 +54,16 @@ export default function LifeMap({
   items,
   skippedWithoutCoordinates,
   warning,
+  initialSearch = "",
 }: {
   items: MapItem[];
   skippedWithoutCoordinates: number;
   warning: string | null;
+  /** Pre-filled search term (e.g. `/lifemap?q=` from the landing page). */
+  initialSearch?: string;
 }) {
   const [kind, setKind] = useState<KindFilter>("all");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [resetSignal, setResetSignal] = useState(0);

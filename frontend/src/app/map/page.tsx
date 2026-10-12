@@ -30,7 +30,14 @@ export const metadata = {
 const FETCH_OPTS = { revalidate: 60 };
 const PAGE_SIZE = 50;
 
-export default async function MapPage() {
+export default async function MapPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { q } = await searchParams;
+  const initialSearch = (Array.isArray(q) ? q[0] : q)?.trim() ?? "";
+
   const [loc, proj, fac] = await Promise.allSettled([
     getLocations({ per_page: PAGE_SIZE }, FETCH_OPTS),
     getProjects({ per_page: PAGE_SIZE }, FETCH_OPTS),
@@ -83,6 +90,7 @@ export default async function MapPage() {
       <LifeMap
         items={items}
         skippedWithoutCoordinates={skippedWithoutCoordinates}
+        initialSearch={initialSearch}
         warning={
           failedKinds.length > 0
             ? `Some data could not be loaded (${failedKinds.join(", ")}). Showing what's available.`

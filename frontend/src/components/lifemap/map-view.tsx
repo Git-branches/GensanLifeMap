@@ -199,6 +199,7 @@ export default function MapView({
   selectedKey,
   resetSignal,
   popupRequest,
+  scrollWheelZoom = true,
   onSelect,
   onViewDetails,
 }: {
@@ -210,6 +211,8 @@ export default function MapView({
   resetSignal: number;
   /** Incremented by results-list clicks to reveal that marker's popup. */
   popupRequest: { key: string; signal: number };
+  /** Off for embedded previews so page scrolling isn't captured by the map. */
+  scrollWheelZoom?: boolean;
   onSelect: (key: string) => void;
   onViewDetails: (key: string) => void;
 }) {
@@ -219,7 +222,7 @@ export default function MapView({
     <MapContainer
       center={[GENSAN_CENTER.lat, GENSAN_CENTER.lng]}
       zoom={GENSAN_CENTER.zoom}
-      scrollWheelZoom
+      scrollWheelZoom={scrollWheelZoom}
       zoomControl={false}
       className="h-full w-full"
     >

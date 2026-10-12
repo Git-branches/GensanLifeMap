@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { MapItem } from "@/lib/map-items";
 
@@ -13,35 +14,34 @@ const MapView = dynamic(() => import("./map-view"), {
   ),
 });
 
+/**
+ * Landing-page map preview. Fills its parent (the page sets the height)
+ * and leaves page scrolling alone: wheel zoom is off, so scrolling past
+ * the map never traps the visitor inside it.
+ */
 export default function HomepageMap({ items }: { items: MapItem[] }) {
+  const router = useRouter();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
+  const openDetails = (key: string) => {
+    const item = items.find((i) => i.key === key);
+    if (!item) return;
+    const section = item.kind === "facility" ? "facilities" : `${item.kind}s`;
+    router.push(`/${section}/${item.record.id}`);
+  };
+
   return (
-    <div className="relative h-105 overflow-hidden rounded-3xl bg-slate-100 sm:h-135">
+    <div className="relative z-0 h-full">
       <MapView
         items={items}
         fitItems={items}
         selectedKey={selectedKey}
         resetSignal={0}
         popupRequest={{ key: "", signal: 0 }}
+        scrollWheelZoom={false}
         onSelect={setSelectedKey}
-        onViewDetails={() => undefined}
+        onViewDetails={openDetails}
       />
-      <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 sm:left-5 sm:right-5">
-        {[
-          ["Locations", "bg-blue-600"],
-          ["Projects", "bg-green-600"],
-          ["Facilities", "bg-orange-500"],
-        ].map(([label, color]) => (
-          <span
-            key={label}
-            className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow-lg backdrop-blur"
-          >
-            <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-            {label}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

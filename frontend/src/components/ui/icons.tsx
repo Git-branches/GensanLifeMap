@@ -154,6 +154,33 @@ export function CompassIcon() {
   );
 }
 
+export function ShieldIcon() {
+  return (
+    <Svg>
+      <path d="M10 2.5 3.5 5v4.5c0 4 2.8 6.9 6.5 8 3.7-1.1 6.5-4 6.5-8V5L10 2.5Z" {...stroke} />
+      <path d="M7.5 10l1.8 1.8 3.2-3.6" {...stroke} />
+    </Svg>
+  );
+}
+
+export function UsersIcon() {
+  return (
+    <Svg>
+      <circle cx="7.5" cy="7" r="3" {...stroke} />
+      <path d="M2 16.5c0-2.8 2.5-4.5 5.5-4.5s5.5 1.7 5.5 4.5" {...stroke} />
+      <path d="M13 4.3a3 3 0 0 1 0 5.4M15 12.4c1.8.6 3 2 3 4.1" {...stroke} />
+    </Svg>
+  );
+}
+
+export function FlagIcon() {
+  return (
+    <Svg>
+      <path d="M4.5 17.5v-14M4.5 4H14l-2 3.5 2 3.5H4.5" {...stroke} />
+    </Svg>
+  );
+}
+
 export function DocIcon() {
   return (
     <Svg>
