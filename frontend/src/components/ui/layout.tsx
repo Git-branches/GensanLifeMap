@@ -42,7 +42,7 @@ export function PageHeader({
         {eyebrow}
       </p>
       <h1
-        className={`mt-1 text-2xl font-bold tracking-tight sm:text-3xl ${
+        className={`mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl ${
           onDark ? "text-white" : "text-zinc-900 dark:text-zinc-50"
         }`}
       >
@@ -67,7 +67,7 @@ export function PageHeader({
  */
 export function PageBand({ children }: { children: ReactNode }) {
   return (
-    <section className="bg-linear-to-br from-blue-950 to-blue-900">
+    <section className="bg-blue-950">
       <Container className="py-10 sm:py-12">{children}</Container>
     </section>
   );

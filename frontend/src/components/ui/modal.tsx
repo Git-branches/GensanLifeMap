@@ -24,6 +24,7 @@ export default function Modal({
   wide?: boolean;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -36,7 +37,10 @@ export default function Modal({
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    // Respect an `autoFocus` control inside the dialog (e.g. a form field).
+    if (!panelRef.current?.contains(document.activeElement)) {
+      closeRef.current?.focus();
+    }
     return () => {
       document.body.style.overflow = prev;
     };
@@ -44,7 +48,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[1100] flex items-end justify-center sm:items-center sm:p-4"
+      className="fixed inset-0 z-1100 flex items-end justify-center sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={label}
@@ -56,6 +60,7 @@ export default function Modal({
         className="absolute inset-0 cursor-default bg-black/50"
       />
       <div
+        ref={panelRef}
         className={`relative max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 sm:rounded-2xl sm:p-6 ${
           wide ? "sm:max-w-2xl" : "sm:max-w-lg"
         }`}

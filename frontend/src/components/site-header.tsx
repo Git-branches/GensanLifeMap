@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "./auth-provider";
+import AuthModal from "./auth-modal";
+import BrandLogo from "./brand-logo";
 import { useThemeOptional } from "@/components/theme-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import { buttonClasses } from "./ui/button";
@@ -189,6 +191,7 @@ export default function SiteHeader() {
   const { status, user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const hasTheme = useThemeOptional() !== null;
 
   if (pathname.startsWith("/admin")) return null;
@@ -215,9 +218,7 @@ export default function SiteHeader() {
     <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200 bg-white/95 text-slate-800 shadow-sm backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-200">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="GenSan LifeMap home">
-          <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="7.5" r="2" fill="currentColor"/></svg>
-          </span>
+          <BrandLogo size={40} />
           <span className="leading-tight"><span className="block text-sm font-bold tracking-wide text-slate-900 dark:text-slate-100">GENSAN</span><span className="block text-[10px] font-semibold tracking-[0.18em] text-blue-700 dark:text-blue-400">LIFE MAP</span></span>
         </Link>
 
@@ -237,7 +238,7 @@ export default function SiteHeader() {
             </>
           ) : (
             <>
-              {status === "unauthenticated" && <Link href="/login" className={`hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex dark:text-slate-200 dark:hover:bg-slate-800 ${FOCUS}`}>Sign in</Link>}
+              {status === "unauthenticated" && <button type="button" onClick={() => setLoginOpen(true)} aria-haspopup="dialog" className={`hidden rounded-full px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline-flex dark:text-slate-200 dark:hover:bg-slate-800 ${FOCUS}`}>Sign in</button>}
               <Link href="/lifemap" className={`${buttonClasses("primary", "sm")} hidden sm:inline-flex`}>Explore LifeMap</Link>
             </>
           )}
@@ -289,12 +290,13 @@ export default function SiteHeader() {
             ) : (
               <div className="grid gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
                 <Link href="/lifemap" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-full bg-blue-700 px-4 py-2.5 text-center text-base font-semibold text-white">Explore LifeMap</Link>
-                {status === "unauthenticated" && <Link href="/login" onClick={() => setMenuOpen(false)} className="block min-h-11 rounded-full border border-slate-300 px-4 py-2.5 text-center text-base font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">Sign in / Create account</Link>}
+                {status === "unauthenticated" && <button type="button" onClick={() => { setMenuOpen(false); setLoginOpen(true); }} aria-haspopup="dialog" className="block min-h-11 rounded-full border border-slate-300 px-4 py-2.5 text-center text-base font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200">Sign in / Create account</button>}
               </div>
             )}
           </div>
         </nav>
       )}
+      {loginOpen && <AuthModal onClose={() => setLoginOpen(false)} />}
     </header>
   );
 }

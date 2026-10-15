@@ -61,6 +61,24 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display), Georgia, "Times New Roman", serif;
+}
+
+/* Clickable things should look clickable (Tailwind v4 resets buttons to
+   the default cursor). Disabled controls say so. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 body {
@@ -506,6 +524,21 @@ body {
 .glm-fade-up-1 { animation-delay: 60ms; }
 .glm-fade-up-2 { animation-delay: 140ms; }
 .glm-fade-up-3 { animation-delay: 220ms; }
+
+/* Sign-in / create-account switch: content slides in from the side of
+   the tab that was chosen. */
+.glm-auth-in-right { animation: glm-auth-in-right 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.glm-auth-in-left { animation: glm-auth-in-left 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes glm-auth-in-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes glm-auth-in-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
 
 @keyframes glm-fade-up {
   from {

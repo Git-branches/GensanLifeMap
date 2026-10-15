@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AuthCta from "@/components/auth-cta";
 import HomepageMap from "@/components/lifemap/homepage-map";
 import SiteFooter from "@/components/site-footer";
 import SiteHeader from "@/components/site-header";
@@ -10,7 +11,6 @@ import {
   ArrowRightIcon,
   DatabaseIcon,
   FacilityIcon,
-  FlagIcon,
   MapIcon,
   PinIcon,
   ProjectIcon,
@@ -24,7 +24,7 @@ import type { Announcement } from "@/types";
 
 export const metadata = {
   title: "GenSan LifeMap — Explore General Santos",
-  description: "Discover places, public projects, facilities, announcements, and community information through one accessible platform.",
+  description: "Find a barangay hall, see how far a road project has come, or read this week's city notices. Everything the city lists publicly, on one map of General Santos.",
 };
 
 const FETCH_OPTS = { revalidate: 60 };
@@ -268,7 +268,7 @@ export default async function Home() {
                 Explore General Santos through one connected city map.
               </h1>
               <p className="glm-fade-up glm-fade-up-2 mt-5 max-w-xl text-base leading-7 text-white sm:text-lg">
-                Discover places, public projects, facilities, announcements, and community information through one accessible platform.
+                Find a barangay hall, see how far a road project has come, or read this week&apos;s city notices. Everything the city lists publicly, on one map of General Santos.
               </p>
 
               <form action="/lifemap" role="search" className="glm-fade-up glm-fade-up-3 mt-8 flex max-w-xl items-center gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-slate-950/40 transition focus-within:ring-4 focus-within:ring-white/70 sm:rounded-full">
@@ -312,7 +312,7 @@ export default async function Home() {
             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
               <div>
                 <Eyebrow>A public city guide</Eyebrow>
-                <h2 id="glance-title" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">GenSan LifeMap at a glance</h2>
+                <h2 id="glance-title" className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900">GenSan LifeMap at a glance</h2>
                 <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600 sm:text-base">
                   A public information platform for residents and visitors to understand what is around them and what is happening in the city.
                 </p>
@@ -343,7 +343,7 @@ export default async function Home() {
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
               <div>
                 <Eyebrow>Explore General Santos</Eyebrow>
-                <h2 id="explore-title" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Discover the city</h2>
+                <h2 id="explore-title" className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900">Discover the city</h2>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">Start with a category, or jump straight to a recently listed record.</p>
               </div>
               <Link href="/lifemap" className={`inline-flex shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold text-blue-800 hover:underline ${FOCUS_RING}`}>
@@ -362,7 +362,7 @@ export default async function Home() {
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div className="max-w-2xl">
                 <Eyebrow>Your city, on one map</Eyebrow>
-                <h2 id="map-title" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">See how the city connects</h2>
+                <h2 id="map-title" className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900">See how the city connects</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
                   A preview of the places, projects, and facilities available to explore. Select a marker for details, or open the full LifeMap to search and filter.
                 </p>
@@ -382,13 +382,13 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-4">
             <div className="max-w-2xl">
               <Eyebrow onDark>Why GenSan LifeMap</Eyebrow>
-              <h2 id="why-title" className="mt-2 text-3xl font-bold tracking-tight text-white">Useful city information, made easier to navigate.</h2>
+              <h2 id="why-title" className="mt-2 font-display text-3xl font-bold tracking-tight text-white">Useful city information, made easier to navigate.</h2>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {PRINCIPLES.map((item) => (
-                <article key={item.title} className="rounded-2xl bg-white/5 p-6 ring-1 ring-white/15">
-                  <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-400/15 text-sky-300">{item.icon}</span>
-                  <h3 className="mt-4 font-semibold text-white">{item.title}</h3>
+              {PRINCIPLES.map((item, index) => (
+                <article key={item.title} className="border-t border-white/25 pt-5">
+                  <span className="font-display text-2xl font-bold text-amber-400">0{index + 1}</span>
+                  <h3 className="mt-3 font-semibold text-white">{item.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-blue-100">{item.text}</p>
                 </article>
               ))}
@@ -402,7 +402,7 @@ export default async function Home() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <Eyebrow>Latest updates</Eyebrow>
-                <h2 id="announcements-title" className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Announcements</h2>
+                <h2 id="announcements-title" className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900">Announcements</h2>
               </div>
               <Link href="/announcements" className={`inline-flex shrink-0 items-center gap-1.5 rounded-full text-sm font-semibold text-blue-800 hover:underline ${FOCUS_RING}`}>
                 All announcements <ArrowRightIcon />
@@ -424,11 +424,10 @@ export default async function Home() {
         {/* Closing call to action */}
         <section aria-labelledby="cta-title" className="bg-sky-50 pb-16 sm:pb-20">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="relative isolate overflow-hidden rounded-3xl bg-linear-to-br from-blue-700 to-blue-900 px-6 py-12 text-white sm:px-12 sm:py-14">
-              <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl" />
+            <div className="relative isolate overflow-hidden rounded-3xl bg-blue-800 px-6 py-12 text-white sm:px-12 sm:py-14">
               <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
                 <div className="max-w-xl">
-                  <h2 id="cta-title" className="text-2xl font-bold tracking-tight sm:text-3xl">Explore the city, and help keep it up to date.</h2>
+                  <h2 id="cta-title" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Explore the city, and help keep it up to date.</h2>
                   <p className="mt-3 text-sm leading-6 text-blue-100 sm:text-base">
                     Anyone can browse the map. Residents with an account can submit community reports and follow their status.
                   </p>
@@ -437,9 +436,7 @@ export default async function Home() {
                   <Link href="/lifemap" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-blue-800 transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                     Explore LifeMap <ArrowRightIcon />
                   </Link>
-                  <Link href="/reports/new" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                    <FlagIcon /> Submit a report
-                  </Link>
+                  <AuthCta />
                 </div>
               </div>
             </div>

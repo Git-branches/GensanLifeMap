@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import BrandLogo from "@/components/brand-logo";
 import { useAuth } from "@/components/auth-provider";
 import ThemeToggle from "@/components/theme-toggle";
 import {
@@ -45,11 +46,7 @@ const GROUPS: { title: string; links: NavItem[] }[] = [
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700";
 
 function BrandMark() {
-  return (
-    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm shadow-blue-950/15">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.5-7-12a7 7 0 1 1 14 0c0 5.5-7 12-7 12Z" stroke="currentColor" strokeWidth="1.7" /><circle cx="12" cy="9" r="2.2" fill="currentColor" /></svg>
-    </span>
-  );
+  return <BrandLogo size={40} />;
 }
 
 /**

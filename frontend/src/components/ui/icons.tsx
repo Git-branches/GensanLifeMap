@@ -154,6 +154,24 @@ export function CompassIcon() {
   );
 }
 
+export function MailIcon() {
+  return (
+    <Svg>
+      <rect x="2.5" y="4.5" width="15" height="11" rx="2" {...stroke} />
+      <path d="m3 6 7 5 7-5" {...stroke} />
+    </Svg>
+  );
+}
+
+export function LockIcon() {
+  return (
+    <Svg>
+      <rect x="4" y="9" width="12" height="8" rx="2" {...stroke} />
+      <path d="M7 9V6.5a3 3 0 0 1 6 0V9" {...stroke} />
+    </Svg>
+  );
+}
+
 export function GridIcon() {
   return (
     <Svg>

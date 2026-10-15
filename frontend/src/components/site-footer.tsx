@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLogo from "@/components/brand-logo";
 
 const footerLink = "text-sm text-blue-100 transition-colors hover:text-white hover:underline";
 const footerHeading = "text-xs font-bold uppercase tracking-wider text-amber-400";
@@ -9,9 +10,7 @@ export default function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link href="/" className="inline-flex items-center gap-2.5" aria-label="GenSan LifeMap home">
-            <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="7.5" r="2" fill="currentColor"/></svg>
-            </span>
+            <BrandLogo size={40} />
             <span><span className="block text-sm font-bold tracking-wide text-white">GenSan LifeMap</span><span className="block text-xs text-blue-200">General Santos City</span></span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-6 text-blue-100">A public information platform helping residents and visitors explore General Santos City.</p>

@@ -1,44 +1,51 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import BrandLogo from "@/components/brand-logo";
+
+const POINTS = [
+  "Report an issue to the city and follow its review",
+  "Browse public projects, facilities and announcements",
+  "Your account is used only for community reports",
+];
 
 /**
- * Light-only auth shell. No theme provider, no dark-mode toggle, no
- * `dark:` variants — sign-in / register always render in the light
- * admin-dashboard palette so the UX is deterministic.
+ * Light-only auth layout shared by /login and /register: a photo panel
+ * on large screens beside the form card. No theme provider, no
+ * dark-mode toggle — the UX stays deterministic.
  */
-export default function AuthShell({
-  eyebrow,
-  title,
-  subtitle,
-  children,
-  switchPrompt,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  children: ReactNode;
-  switchPrompt: ReactNode;
-}) {
+export default function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <main
-      className="flex min-h-full flex-1 items-center justify-center bg-[#f3f7fb] px-4 py-10 text-slate-800 sm:py-14"
-      style={{ colorScheme: "light" }}
-    >
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-between"><Link href="/" className="flex items-center gap-2.5" aria-label="GenSan LifeMap home">
-          <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white shadow-sm shadow-blue-950/15">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17.5S4 11.8 4 7.5a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="7.5" r="2" fill="currentColor"/></svg>
-          </span>
-          <span><span className="block text-sm font-bold tracking-wide text-slate-900">GenSan LifeMap</span><span className="block text-xs text-slate-500">General Santos City</span></span>
-        </Link></div>
-        <section className="rounded-xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8">
-          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-blue-800"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden="true" />{eyebrow}</p>
-          <h1 className="mt-2 text-[26px] font-bold tracking-tight text-slate-900">{title}</h1>
-          <p className="mt-1 text-[13px] leading-5 text-slate-600">{subtitle}</p>
-          <div className="mt-6">{children}</div>
-          <p className="mt-6 border-t border-slate-100 pt-4 text-center text-sm text-slate-600">{switchPrompt}</p>
-          <p className="mt-3 text-center text-xs text-slate-500"><Link href="/" className="hover:text-blue-700 hover:underline">← Back to GenSan LifeMap</Link></p>
-        </section>
+    <main className="grid min-h-dvh flex-1 bg-[#f3f7fb] text-slate-800 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]" style={{ colorScheme: "light" }}>
+      <aside className="relative isolate hidden overflow-hidden bg-blue-950 lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <Image src="/images/landing/gensan.jpg" alt="" fill priority sizes="42vw" className="-z-20 object-cover" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-slate-950/55" />
+        <Link href="/" className="flex w-fit items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="GenSan LifeMap home">
+          <BrandLogo size={48} />
+          <span className="leading-tight"><span className="block text-sm font-bold tracking-wide text-white">GenSan LifeMap</span><span className="block text-xs text-blue-100">City of General Santos</span></span>
+        </Link>
+        <div>
+          <h2 className="max-w-md font-display text-4xl font-bold leading-tight tracking-tight text-white">A clearer view of the city you live in.</h2>
+          <ul className="mt-6 space-y-3">
+            {POINTS.map((point) => (
+              <li key={point} className="flex items-start gap-3 text-sm leading-6 text-white">
+                <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+
+      <div className="flex items-center justify-center px-4 py-10 sm:py-14">
+        <div className="w-full max-w-md">
+          <Link href="/" className="mb-6 flex w-fit items-center gap-3 lg:hidden" aria-label="GenSan LifeMap home">
+            <BrandLogo size={44} />
+            <span><span className="block text-sm font-bold tracking-wide text-slate-900">GenSan LifeMap</span><span className="block text-xs text-slate-500">City of General Santos</span></span>
+          </Link>
+          <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8">{children}</section>
+          <p className="mt-5 text-center text-xs text-slate-500"><Link href="/" className="hover:text-blue-700 hover:underline">← Back to GenSan LifeMap</Link></p>
+        </div>
       </div>
     </main>
   );
