@@ -42,10 +42,10 @@ interface AccountLink {
 /** Account destinations shared by the desktop menu and the mobile drawer. */
 function accountLinks(user: AuthUser): AccountLink[] {
   const links: AccountLink[] = [
-    { href: "/dashboard", label: "My dashboard", icon: <GridIcon /> },
+    { href: "/dashboard", label: "Dashboard", icon: <GridIcon /> },
     { href: "/reports", label: "My reports", icon: <DocIcon /> },
-    { href: "/reports/new", label: "Submit a report", icon: <FlagIcon /> },
-    { href: "/profile", label: "My profile", icon: <UsersIcon /> },
+    { href: "/reports/new", label: "New report", icon: <FlagIcon /> },
+    { href: "/profile", label: "Profile", icon: <UsersIcon /> },
   ];
   if (user.role === "admin" || user.role === "moderator") {
     links.push({ href: "/admin", label: "Management workspace", icon: <ShieldIcon /> });
@@ -231,7 +231,7 @@ export default function SiteHeader() {
 
           {account ? (
             <>
-              <Link href="/reports/new" className={`${buttonClasses("primary", "sm")} hidden md:inline-flex`}>Submit a report</Link>
+              <Link href="/reports/new" className={`${buttonClasses("primary", "sm")} hidden md:inline-flex`}>Report an issue</Link>
               <div className="hidden sm:block">
                 <AccountMenu user={account} pathname={pathname} signingOut={signingOut} onSignOut={() => void handleSignOut()} />
               </div>

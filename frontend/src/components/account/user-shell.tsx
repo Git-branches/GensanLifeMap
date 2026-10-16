@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { useReports } from "@/components/account/reports-provider";
 import BrandLogo from "@/components/brand-logo";
 import { useAuth } from "@/components/auth-provider";
 import ThemeToggle from "@/components/theme-toggle";
@@ -27,13 +28,13 @@ interface NavItem {
 const GROUPS: { title: string; links: NavItem[] }[] = [
   { title: "Workspace", links: [{ href: "/dashboard", label: "Dashboard", icon: <GridIcon /> }] },
   {
-    title: "Community reports",
+    title: "Community",
     links: [
       { href: "/reports", label: "My reports", icon: <DocIcon /> },
-      { href: "/reports/new", label: "Submit a report", icon: <FlagIcon /> },
+      { href: "/reports/new", label: "New report", icon: <FlagIcon /> },
     ],
   },
-  { title: "Account", links: [{ href: "/profile", label: "My profile", icon: <UsersIcon /> }] },
+  { title: "Account", links: [{ href: "/profile", label: "Profile", icon: <UsersIcon /> }] },
   {
     title: "Explore",
     links: [
@@ -60,6 +61,7 @@ export default function UserShell({ children }: { children: ReactNode }) {
   const { status, user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const { updatedIds } = useReports();
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace(`/login?next=${encodeURIComponent(pathname)}`);
@@ -103,6 +105,12 @@ export default function UserShell({ children }: { children: ReactNode }) {
                 <Link href={item.href} onClick={onNavigate} aria-current={isActive(item.href) ? "page" : undefined} className={itemClass(isActive(item.href))}>
                   <span aria-hidden="true" className="shrink-0">{item.icon}</span>
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  {item.href === "/reports" && updatedIds.size > 0 && (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-bold leading-5 text-white" title={`${updatedIds.size} report ${updatedIds.size === 1 ? "update" : "updates"}`}>
+                      {updatedIds.size}
+                      <span className="sr-only"> new {updatedIds.size === 1 ? "update" : "updates"}</span>
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
@@ -160,11 +168,8 @@ export default function UserShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/reports/new" className={`hidden min-h-10 items-center gap-2 rounded-full bg-blue-700 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-800 sm:inline-flex ${FOCUS}`}>
-              <FlagIcon /> Submit a report
-            </Link>
             <ThemeToggle compact />
-            <Link href="/profile" aria-label="My profile" className={`flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-bold text-white ${FOCUS}`}>{initial}</Link>
+            <Link href="/profile" aria-label="Profile" className={`flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-bold text-white ${FOCUS}`}>{initial}</Link>
           </div>
         </header>
 
@@ -177,7 +182,7 @@ export default function UserShell({ children }: { children: ReactNode }) {
           </nav>
         )}
 
-        <main className="w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
         <footer className="px-4 pb-6 text-center text-xs text-slate-500 dark:text-slate-400">GenSan LifeMap · General Santos City</footer>
       </div>
     </div>

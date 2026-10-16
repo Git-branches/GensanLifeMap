@@ -98,8 +98,8 @@ export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   revalidate?: number;
   /** Set false to skip the automatic Bearer token header. Default true. */
   auth?: boolean;
-  /** Request payload (JSON-stringified by callers). */
-  body?: string;
+  /** Request payload: a JSON string, or FormData for file uploads. */
+  body?: string | FormData;
 }
 
 /**

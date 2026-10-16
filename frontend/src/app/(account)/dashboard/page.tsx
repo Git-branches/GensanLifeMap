@@ -9,12 +9,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ReportStatusPill } from "@/components/account/report-status";
+import { useReports } from "@/components/account/reports-provider";
 import { useAuth } from "@/components/auth-provider";
 import { ArrowRightIcon, DocIcon, FlagIcon, MapIcon, UsersIcon } from "@/components/ui/icons";
-import { getAnnouncements, getFriendlyErrorMessage } from "@/lib/api";
-import { getMyReports } from "@/lib/api/community-reports";
+import { getAnnouncements } from "@/lib/api";
 import type { Announcement } from "@/types";
-import type { CommunityReport } from "@/types/community-report";
 
 const CARD = "overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/90 dark:bg-slate-900 dark:ring-slate-800";
 
@@ -35,19 +34,15 @@ function greeting() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [reports, setReports] = useState<CommunityReport[] | null>(null);
+  const { reports, error, refresh, updatedIds } = useReports();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     let cancelled = false;
-    getMyReports()
-      .then((result) => { if (!cancelled) setReports(result.data); })
-      .catch((reason: unknown) => {
-        if (cancelled) return;
-        setReports([]);
-        setError(getFriendlyErrorMessage(reason));
-      });
     getAnnouncements({ per_page: 3 })
       .then((result) => { if (!cancelled) setAnnouncements(result.data); })
       .catch(() => undefined);
@@ -80,10 +75,10 @@ export default function DashboardPage() {
   ];
 
   const shortcuts = [
-    { href: "/reports/new", label: "Submit a report", text: "Tell the city about an issue", icon: <FlagIcon /> },
+    { href: "/reports/new", label: "Report an issue", text: "Tell the city about a problem", icon: <FlagIcon /> },
     { href: "/reports", label: "My reports", text: "Follow review progress", icon: <DocIcon /> },
     { href: "/lifemap", label: "Explore the map", text: "Places, projects, facilities", icon: <MapIcon /> },
-    { href: "/profile", label: "My profile", text: "Name, email and password", icon: <UsersIcon /> },
+    { href: "/profile", label: "Profile", text: "Name, email and password", icon: <UsersIcon /> },
   ];
 
   return (
@@ -97,9 +92,19 @@ export default function DashboardPage() {
           {greeting()}{firstName ? `, ${firstName}` : ""}
         </h1>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Here is where your community reports stand, and what is new in the city.
+          Where your reports stand, and what is new in the city.
         </p>
       </div>
+
+      {updatedIds.size > 0 && (
+        <Link href="/reports" className="flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 transition-colors hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100">
+          <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">{updatedIds.size}</span>
+          <span className="min-w-0 flex-1 font-medium">
+            {updatedIds.size === 1 ? "One of your reports has a new update." : `${updatedIds.size} of your reports have new updates.`}
+          </span>
+          <span className="inline-flex items-center gap-1 font-semibold">View <ArrowRightIcon /></span>
+        </Link>
+      )}
 
       {error && (
         <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</p>
@@ -132,10 +137,10 @@ export default function DashboardPage() {
           ) : recent.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <span aria-hidden="true" className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><DocIcon /></span>
-              <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">No reports yet</h3>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-slate-600 dark:text-slate-400">See something that needs attention? Submit a report and follow its review here.</p>
+              <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">Nothing reported yet</h3>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-slate-600 dark:text-slate-400">See something that needs attention? Tell the city and follow the review here.</p>
               <Link href="/reports/new" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-semibold text-white hover:bg-blue-800">
-                <FlagIcon /> Submit your first report
+                <FlagIcon /> Report an issue
               </Link>
             </div>
           ) : (
@@ -149,6 +154,7 @@ export default function DashboardPage() {
                         {report.category.replaceAll("_", " ")} · {report.location?.name ?? "Location unavailable"} · {dateLabel(report.created_at)}
                       </span>
                     </span>
+                    {updatedIds.has(report.id) && <span className="hidden shrink-0 rounded-full bg-blue-700 px-2 py-0.5 text-[11px] font-bold text-white sm:inline">New update</span>}
                     <ReportStatusPill status={report.status} />
                   </Link>
                 </li>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ReportsProvider } from "@/components/account/reports-provider";
 import UserShell from "@/components/account/user-shell";
 import { ScopedThemeProvider } from "@/components/theme-provider";
 
@@ -12,7 +13,9 @@ export const metadata = { title: "My workspace | GenSan LifeMap" };
 export default function AccountLayout({ children }: { children: ReactNode }) {
   return (
     <ScopedThemeProvider scope="user">
-      <UserShell>{children}</UserShell>
+      <ReportsProvider>
+        <UserShell>{children}</UserShell>
+      </ReportsProvider>
     </ScopedThemeProvider>
   );
 }

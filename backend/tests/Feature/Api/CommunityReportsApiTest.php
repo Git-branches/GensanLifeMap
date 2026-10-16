@@ -143,6 +143,70 @@ class CommunityReportsApiTest extends TestCase
         $this->assertTrue(Storage::disk('public')->exists($photoPath));
     }
 
+    public function test_store_saves_pinned_coordinates(): void
+    {
+        $location = $this->makeLocation();
+        Sanctum::actingAs($this->makeUser());
+
+        $this->postJson('/api/community-reports', [
+            'location_id' => $location->id,
+            'category' => 'road',
+            'title' => 'Pinned pothole',
+            'latitude' => 6.1101234,
+            'longitude' => 125.1722345,
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.latitude', 6.1101234)
+            ->assertJsonPath('data.longitude', 125.1722345);
+    }
+
+    public function test_store_requires_both_coordinates_and_valid_ranges(): void
+    {
+        $location = $this->makeLocation();
+        Sanctum::actingAs($this->makeUser());
+
+        $this->postJson('/api/community-reports', [
+            'location_id' => $location->id,
+            'category' => 'road',
+            'title' => 'Half a pin',
+            'latitude' => 6.11,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['longitude']);
+
+        $this->postJson('/api/community-reports', [
+            'location_id' => $location->id,
+            'category' => 'road',
+            'title' => 'Off the map',
+            'latitude' => 123,
+            'longitude' => 125.17,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['latitude']);
+    }
+
+    public function test_show_includes_photo_url_and_status_timeline_without_staff_identity(): void
+    {
+        $owner = $this->makeUser();
+        $report = $this->makeReport(['user_id' => $owner->id, 'photo_path' => 'reports/example.jpg']);
+        $moderator = $this->makeUser();
+        $moderator->update(['role' => User::ROLE_MODERATOR]);
+
+        Sanctum::actingAs($moderator);
+        $this->patchJson("/api/community-reports/{$report->id}/status", ['status' => 'under_review'])->assertOk();
+        $this->patchJson("/api/community-reports/{$report->id}/status", ['status' => 'resolved'])->assertOk();
+
+        Sanctum::actingAs($owner);
+        $response = $this->getJson("/api/community-reports/{$report->id}")->assertOk();
+
+        $this->assertStringEndsWith('/storage/reports/example.jpg', $response->json('data.photo_url'));
+        $this->assertSame(
+            ['submitted', 'under_review', 'resolved'],
+            array_column($response->json('data.timeline'), 'status'),
+        );
+        $this->assertStringNotContainsString((string) $moderator->email, $response->getContent());
+        $this->assertArrayNotHasKey('user_id', $response->json('data.timeline.1'));
+
+        // The list view stays lightweight: no timeline.
+        $this->getJson('/api/community-reports/mine')->assertOk()->assertJsonMissingPath('data.0.timeline');
+    }
+
     public function test_store_validation_errors(): void
     {
         Sanctum::actingAs($this->makeUser());

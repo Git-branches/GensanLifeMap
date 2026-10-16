@@ -23,6 +23,9 @@ class StoreCommunityReportRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             // File upload only; clients may never set photo_path directly.
             'photo' => ['nullable', 'image', 'max:2048'],
+            // Optional exact pin; both coordinates or neither.
+            'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
         ];
     }
 }

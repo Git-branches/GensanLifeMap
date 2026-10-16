@@ -6,7 +6,7 @@ import BrandLogo from "@/components/brand-logo";
 const POINTS = [
   "Report an issue to the city and follow its review",
   "Browse public projects, facilities and announcements",
-  "Your account is used only for community reports",
+  "Your account is used only to report and follow issues",
 ];
 
 /**

@@ -17,10 +17,24 @@ export async function getMyReport(id: number) {
 }
 
 export async function createCommunityReport(input: CreateCommunityReportInput) {
+  const { photo, ...fields } = input;
+
+  // A photo needs multipart; the browser sets the Content-Type boundary.
+  let init: { headers?: Record<string, string>; body: string | FormData };
+  if (photo) {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) form.append(key, String(value));
+    }
+    form.append("photo", photo);
+    init = { body: form };
+  } else {
+    init = { headers: { "Content-Type": "application/json" }, body: JSON.stringify(fields) };
+  }
+
   const response = await apiFetch<{ data: CommunityReport }>("/community-reports", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    ...init,
   });
   return response.data;
 }

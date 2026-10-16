@@ -21,7 +21,7 @@ export default function AuthCta() {
   if (status === "authenticated") {
     return (
       <Link href="/reports/new" className={BUTTON}>
-        <FlagIcon /> Submit a report
+        <FlagIcon /> Report an issue
       </Link>
     );
   }

@@ -14,7 +14,7 @@ const COPY: Record<AuthMode, { title: string; subtitle: string }> = {
   },
   register: {
     title: "Create your account",
-    subtitle: "Submit and follow community reports across General Santos City.",
+    subtitle: "Report issues and follow them across General Santos City.",
   },
 };
 

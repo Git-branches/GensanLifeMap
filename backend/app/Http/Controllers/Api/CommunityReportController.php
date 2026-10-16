@@ -50,7 +50,34 @@ class CommunityReportController extends Controller
     {
         abort_unless($communityReport->user_id === $request->user()->id, 404);
 
-        return new CommunityReportResource($communityReport->load(['user', 'location']));
+        return (new CommunityReportResource($communityReport->load(['user', 'location'])))
+            ->withTimeline($this->timelineFor($communityReport));
+    }
+
+    /**
+     * Resident-facing history built from the moderation audit trail.
+     * Only the status and when it changed are exposed — never which
+     * staff member made the change.
+     *
+     * @return list<array{status: string, at: string|null}>
+     */
+    private function timelineFor(CommunityReport $report): array
+    {
+        $events = [['status' => 'submitted', 'at' => $report->created_at?->toIso8601String()]];
+
+        AuditLog::query()
+            ->where('entity_type', 'community_report')
+            ->where('entity_id', $report->id)
+            ->orderBy('id')
+            ->get()
+            ->each(function (AuditLog $log) use (&$events): void {
+                $status = $log->new_values['status'] ?? null;
+                if (is_string($status)) {
+                    $events[] = ['status' => $status, 'at' => $log->created_at?->toIso8601String()];
+                }
+            });
+
+        return $events;
     }
 
     public function store(StoreCommunityReportRequest $request): JsonResponse
@@ -69,6 +96,8 @@ class CommunityReportController extends Controller
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'photo_path' => $photoPath,
+            'latitude' => $data['latitude'] ?? null,
+            'longitude' => $data['longitude'] ?? null,
             // Status is always forced server-side; citizen input can never set it.
             'status' => 'submitted',
         ]);

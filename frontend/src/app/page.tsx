@@ -51,7 +51,7 @@ const PRINCIPLES = [
   { title: "Accessible information", text: "Browse public information through clear listings and a searchable map.", icon: <SearchIcon /> },
   { title: "Connected places", text: "See how locations, projects, and facilities relate across the city.", icon: <MapIcon /> },
   { title: "Public transparency", text: "Explore recorded details and their tracked information sources.", icon: <DatabaseIcon /> },
-  { title: "Community participation", text: "Residents can submit and follow community reports with an account.", icon: <UsersIcon /> },
+  { title: "Community participation", text: "Residents can report issues and follow them with an account.", icon: <UsersIcon /> },
 ];
 
 interface PreviewRow {
@@ -429,7 +429,7 @@ export default async function Home() {
                 <div className="max-w-xl">
                   <h2 id="cta-title" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Explore the city, and help keep it up to date.</h2>
                   <p className="mt-3 text-sm leading-6 text-blue-100 sm:text-base">
-                    Anyone can browse the map. Residents with an account can submit community reports and follow their status.
+                    Anyone can browse the map. Residents with an account can report issues and follow their status.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">

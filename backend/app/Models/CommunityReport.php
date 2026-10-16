@@ -14,6 +14,8 @@ class CommunityReport extends Model
         'title',
         'description',
         'photo_path',
+        'latitude',
+        'longitude',
         'status',
     ];
 
