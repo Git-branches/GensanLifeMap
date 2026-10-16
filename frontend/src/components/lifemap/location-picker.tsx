@@ -62,7 +62,9 @@ export default function LocationPicker({
       zoom={value ? 16 : GENSAN_CENTER.zoom}
       scrollWheelZoom={false}
       zoomControl={false}
-      className={className}
+      // `isolate` keeps Leaflet's internal z-indexes (panes 400, controls
+      // 1000) inside the map so it can't paint over sticky bars or modals.
+      className={`isolate ${className}`}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
