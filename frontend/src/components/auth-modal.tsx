@@ -17,15 +17,18 @@ import Modal from "@/components/ui/modal";
 export default function AuthModal({
   initialMode = "login",
   onClose,
+  redirectTo,
 }: {
   initialMode?: AuthMode;
   onClose: () => void;
+  /** Where residents go after signing in; by default they stay on the current page. */
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
   return createPortal(
-    <Modal label={mode === "login" ? "Sign in to GenSan LifeMap" : "Create a GenSan LifeMap account"} onClose={onClose}>
+    <Modal label={mode === "register" ? "Create a GenSan LifeMap account" : mode === "forgot" ? "Reset your GenSan LifeMap password" : "Sign in to GenSan LifeMap"} onClose={onClose}>
       <div className="px-1 pb-1 sm:px-4 sm:pb-3">
         <div className="mb-5 flex items-center justify-center gap-3">
           <BrandLogo size={44} />
@@ -41,6 +44,7 @@ export default function AuthModal({
           onSuccess={(account) => {
             onClose();
             if (account.role === "admin" || account.role === "moderator") router.push("/admin");
+            else if (redirectTo) router.push(redirectTo);
             router.refresh();
           }}
         />

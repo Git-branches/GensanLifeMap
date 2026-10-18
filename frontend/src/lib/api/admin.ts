@@ -39,7 +39,7 @@ export function getAdminResource(resource: ManagedResource, query: { search?: st
   return apiFetch<PaginatedResponse<AdminRecord>>(`/admin/${resource}`, { query: { ...query, per_page: query.per_page ?? 20 }, cache: "no-store" });
 }
 
-export function getAdminReports(query: { search?: string; status?: string; category?: string; page?: number; per_page?: number } = {}) {
+export function getAdminReports(query: { search?: string; status?: string; category?: string; barangay?: string; page?: number; per_page?: number } = {}) {
   return apiFetch<PaginatedResponse<CommunityReport>>("/admin/community-reports", { query: { ...query, per_page: query.per_page ?? 20 }, cache: "no-store" });
 }
 
@@ -69,11 +69,18 @@ export function deleteAdminResource(resource: ManagedResource, id: number) {
   return apiFetch<void>(`/admin/${resource}/${id}`, { method: "DELETE" });
 }
 
-export async function updateReportStatus(id: number, status: string) {
+/** One report with its full history, including who made each change. */
+export async function getAdminReport(id: number) {
+  const result = await apiFetch<DataEnvelope<CommunityReport>>(`/admin/community-reports/${id}`, { cache: "no-store" });
+  return result.data;
+}
+
+/** Move a report to its next status; `note` is shown to the resident in their timeline. */
+export async function updateReportStatus(id: number, status: string, note?: string) {
   const result = await apiFetch<DataEnvelope<CommunityReport>>(`/community-reports/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, ...(note?.trim() ? { note: note.trim() } : {}) }),
   });
   return result.data;
 }

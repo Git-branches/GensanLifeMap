@@ -27,10 +27,13 @@ function IconSlot({ children }: { children: ReactNode }) {
 export default function LoginForm({
   onSuccess,
   autoFocus = false,
+  onForgotPassword,
 }: {
   onSuccess: (account: AuthUser) => void;
   /** Focus the email field on mount (used by the modal). */
   autoFocus?: boolean;
+  /** Switches the surrounding panel to the "send me a reset link" step. */
+  onForgotPassword: () => void;
 }) {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
@@ -121,6 +124,16 @@ export default function LoginForm({
           />
         </div>
       </AuthField>
+
+      <div className="-mt-2 text-right">
+        <button
+          type="button"
+          onClick={onForgotPassword}
+          className="text-sm font-semibold text-blue-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        >
+          Forgot password?
+        </button>
+      </div>
 
       <button
         type="submit"

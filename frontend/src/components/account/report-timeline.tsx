@@ -42,7 +42,18 @@ export default function ReportTimeline({ events }: { events: CommunityReportEven
               {latest && <span className="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800 dark:bg-blue-950 dark:text-blue-200">Current</span>}
             </p>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{NOTES[event.status]}</p>
-            {event.at && <time dateTime={event.at} className="mt-0.5 block text-xs text-slate-400 dark:text-slate-500">{stamp(event.at)}</time>}
+            {event.note && (
+              <blockquote className="mt-2 rounded-lg border-l-4 border-blue-300 bg-blue-50 px-3 py-2 text-sm leading-5 text-slate-700 dark:border-blue-700 dark:bg-blue-950 dark:text-slate-200">
+                {event.note}
+              </blockquote>
+            )}
+            {(event.at || event.by) && (
+              <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                {event.at && <time dateTime={event.at}>{stamp(event.at)}</time>}
+                {event.at && event.by && " · "}
+                {event.by && <span>by {event.by}</span>}
+              </p>
+            )}
           </li>
         );
       })}

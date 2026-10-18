@@ -21,6 +21,8 @@ class UpdateCommunityReportStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', 'string', 'in:under_review,verified,resolved,rejected'],
+            // Optional message shown to the resident in their report timeline.
+            'note' => ['nullable', 'string', 'max:500'],
         ];
     }
 

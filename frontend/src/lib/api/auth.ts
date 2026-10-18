@@ -88,9 +88,15 @@ export async function getCurrentUser(): Promise<AuthUser> {
  * so effects may consume it inside subscription callbacks.
  */
 export async function resolveStoredSession(): Promise<AuthUser | null> {
-  if (!getAuthToken()) return null;
+  const token = getAuthToken();
+  if (!token) return null;
   try {
-    return await getCurrentUser();
+    const user = await getCurrentUser();
+    // Re-issue the routing cookie for a confirmed session. Otherwise, once
+    // the cookie expires (7 days) while the token is still valid, the route
+    // guard and the sign-in page bounce the visitor back and forth.
+    setAuthToken(token);
+    return user;
   } catch (error) {
     if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
       clearAuthToken();
@@ -116,4 +122,61 @@ export async function changePassword(input: ChangePasswordInput): Promise<void> 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+}
+
+export interface ResetPasswordInput {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+/** Values carried by the link in the verification email. */
+export interface VerifyEmailParams {
+  id: string;
+  hash: string;
+  expires: string;
+  signature: string;
+}
+
+interface MessageEnvelope {
+  message: string;
+}
+
+/** Ask for a reset link. The answer is the same whether or not the email is registered. */
+export async function requestPasswordReset(email: string): Promise<string> {
+  const body = await apiFetch<MessageEnvelope>("/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    auth: false,
+  });
+  return body.message;
+}
+
+/** Set a new password using the token from the emailed link. */
+export async function resetPassword(input: ResetPasswordInput): Promise<string> {
+  const body = await apiFetch<MessageEnvelope>("/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    auth: false,
+  });
+  return body.message;
+}
+
+/** Confirm an email address from the verification link (no sign-in needed). */
+export async function verifyEmailLink(params: VerifyEmailParams): Promise<void> {
+  await apiFetch("/email/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+    auth: false,
+  });
+}
+
+/** Send the signed-in user a fresh verification email. */
+export async function resendVerificationEmail(): Promise<string> {
+  const body = await apiFetch<MessageEnvelope>("/email/verification-notification", { method: "POST" });
+  return body.message;
 }

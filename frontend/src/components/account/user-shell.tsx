@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useReports } from "@/components/account/reports-provider";
+import VerifyEmailBanner from "@/components/account/verify-email-banner";
 import BrandLogo from "@/components/brand-logo";
 import { useAuth } from "@/components/auth-provider";
 import ThemeToggle from "@/components/theme-toggle";
@@ -182,6 +183,7 @@ export default function UserShell({ children }: { children: ReactNode }) {
           </nav>
         )}
 
+        <VerifyEmailBanner />
         <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
         <footer className="px-4 pb-6 text-center text-xs text-slate-500 dark:text-slate-400">GenSan LifeMap · General Santos City</footer>
       </div>

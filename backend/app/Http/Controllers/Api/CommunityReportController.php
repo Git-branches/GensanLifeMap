@@ -51,33 +51,7 @@ class CommunityReportController extends Controller
         abort_unless($communityReport->user_id === $request->user()->id, 404);
 
         return (new CommunityReportResource($communityReport->load(['user', 'location'])))
-            ->withTimeline($this->timelineFor($communityReport));
-    }
-
-    /**
-     * Resident-facing history built from the moderation audit trail.
-     * Only the status and when it changed are exposed — never which
-     * staff member made the change.
-     *
-     * @return list<array{status: string, at: string|null}>
-     */
-    private function timelineFor(CommunityReport $report): array
-    {
-        $events = [['status' => 'submitted', 'at' => $report->created_at?->toIso8601String()]];
-
-        AuditLog::query()
-            ->where('entity_type', 'community_report')
-            ->where('entity_id', $report->id)
-            ->orderBy('id')
-            ->get()
-            ->each(function (AuditLog $log) use (&$events): void {
-                $status = $log->new_values['status'] ?? null;
-                if (is_string($status)) {
-                    $events[] = ['status' => $status, 'at' => $log->created_at?->toIso8601String()];
-                }
-            });
-
-        return $events;
+            ->withTimeline($communityReport->timeline());
     }
 
     public function store(StoreCommunityReportRequest $request): JsonResponse
@@ -115,8 +89,11 @@ class CommunityReportController extends Controller
             throw new AccessDeniedHttpException('You are not authorized to moderate reports.');
         }
 
+        $validated = $request->validated();
+        $note = isset($validated['note']) ? trim($validated['note']) : null;
+
         $oldStatus = $communityReport->status;
-        $communityReport->update(['status' => $request->validated()['status']]);
+        $communityReport->update(['status' => $validated['status']]);
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -124,9 +101,16 @@ class CommunityReportController extends Controller
             'entity_type' => 'community_report',
             'entity_id' => $communityReport->id,
             'old_values' => ['status' => $oldStatus],
-            'new_values' => ['status' => $communityReport->status],
+            'new_values' => array_filter(
+                ['status' => $communityReport->status, 'note' => $note !== '' ? $note : null],
+                fn ($value) => $value !== null,
+            ),
         ]);
 
-        return new CommunityReportResource($communityReport->load(['user', 'location']));
+        $communityReport->load(['user', 'location']);
+
+        // Staff get the history with who made each change.
+        return (new CommunityReportResource($communityReport))
+            ->withTimeline($communityReport->timeline(withActors: true));
     }
 }

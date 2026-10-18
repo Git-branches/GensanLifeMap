@@ -11,6 +11,10 @@ export type CommunityReportStatus =
 export interface CommunityReportEvent {
   status: CommunityReportStatus;
   at: string | null;
+  /** Message the reviewer chose to share with the resident. */
+  note?: string | null;
+  /** Who made the change. Only present in staff views, never for residents. */
+  by?: string | null;
 }
 
 export interface CommunityReport {

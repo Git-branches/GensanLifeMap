@@ -1,4 +1,4 @@
-﻿/** Small geographic helpers (pure functions, no UI). */
+/** Small geographic helpers (pure functions, no UI). */
 
 export interface LatLng {
   lat: number;

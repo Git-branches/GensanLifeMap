@@ -207,6 +207,74 @@ class CommunityReportsApiTest extends TestCase
         $this->getJson('/api/community-reports/mine')->assertOk()->assertJsonMissingPath('data.0.timeline');
     }
 
+    public function test_status_note_reaches_the_resident_but_staff_names_do_not(): void
+    {
+        $owner = $this->makeUser();
+        $report = $this->makeReport(['user_id' => $owner->id]);
+        $moderator = $this->makeUser();
+        $moderator->update(['name' => 'Staff Reviewer', 'role' => User::ROLE_MODERATOR]);
+
+        Sanctum::actingAs($moderator);
+        $this->patchJson("/api/community-reports/{$report->id}/status", [
+            'status' => 'under_review',
+            'note' => '  Crew scheduled for Friday.  ',
+        ])
+            ->assertOk()
+            // Staff see who made each change.
+            ->assertJsonPath('data.timeline.1.by', 'Staff Reviewer')
+            ->assertJsonPath('data.timeline.1.note', 'Crew scheduled for Friday.');
+
+        Sanctum::actingAs($owner);
+        $response = $this->getJson("/api/community-reports/{$report->id}")->assertOk();
+
+        $this->assertSame('Crew scheduled for Friday.', $response->json('data.timeline.1.note'));
+        $this->assertNull($response->json('data.timeline.0.note'));
+        $this->assertArrayNotHasKey('by', $response->json('data.timeline.1'));
+        $this->assertStringNotContainsString('Staff Reviewer', $response->getContent());
+    }
+
+    public function test_status_note_is_optional_and_length_limited(): void
+    {
+        $report = $this->makeReport();
+        $moderator = $this->makeUser();
+        $moderator->update(['role' => User::ROLE_MODERATOR]);
+        Sanctum::actingAs($moderator);
+
+        $this->patchJson("/api/community-reports/{$report->id}/status", [
+            'status' => 'under_review',
+            'note' => str_repeat('x', 501),
+        ])->assertUnprocessable()->assertJsonValidationErrors(['note']);
+
+        $this->patchJson("/api/community-reports/{$report->id}/status", ['status' => 'under_review'])
+            ->assertOk()
+            ->assertJsonPath('data.timeline.1.note', null);
+    }
+
+    public function test_admin_report_view_and_barangay_filter(): void
+    {
+        $lagao = $this->makeReport(['title' => 'Lagao report']);
+        $other = $this->makeReport([
+            'title' => 'Bula report',
+            'location_id' => Location::create([
+                'name' => 'Bula site', 'barangay' => 'Bula', 'location_type' => 'community_area',
+                'latitude' => 6.09, 'longitude' => 125.2,
+            ])->id,
+        ]);
+        $moderator = $this->makeUser();
+        $moderator->update(['role' => User::ROLE_MODERATOR]);
+        Sanctum::actingAs($moderator);
+
+        $this->getJson('/api/admin/community-reports?barangay=Bula')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $other->id);
+
+        $this->getJson("/api/admin/community-reports/{$lagao->id}")
+            ->assertOk()
+            ->assertJsonPath('data.timeline.0.status', 'submitted')
+            ->assertJsonPath('data.timeline.0.by', $lagao->user->name);
+    }
+
     public function test_store_validation_errors(): void
     {
         Sanctum::actingAs($this->makeUser());

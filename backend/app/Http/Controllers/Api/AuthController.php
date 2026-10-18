@@ -9,8 +9,14 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\EmailVerificationLink;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -29,6 +35,8 @@ class AuthController extends Controller
             'password' => $attributes['password'],
             'role' => User::ROLE_CITIZEN,
         ]);
+
+        $this->sendVerificationEmail($user);
 
         $token = $user->createToken('lifemap-web')->plainTextToken;
 
@@ -105,7 +113,16 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
         $user->fill($request->only(['name', 'email']));
+        $emailChanged = $user->isDirty('email');
+        if ($emailChanged) {
+            // A new address must be confirmed again.
+            $user->email_verified_at = null;
+        }
         $user->save();
+
+        if ($emailChanged) {
+            $this->sendVerificationEmail($user);
+        }
 
         return response()->json([
             'data' => ['user' => new UserResource($user->fresh())],
@@ -130,4 +147,125 @@ class AuthController extends Controller
             'message' => 'Password changed successfully.',
         ]);
     }
-}
+
+    /**
+     * Start a password reset. The response is identical whether or not the
+     * address is registered (and even if mail delivery fails), so it cannot
+     * be used to discover accounts.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['email' => ['required', 'string', 'email', 'max:255']]);
+
+        try {
+            Password::sendResetLink(['email' => $validated['email']]);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        return response()->json([
+            'message' => 'If that email address is registered, a password reset link is on its way.',
+        ]);
+    }
+
+    /**
+     * Finish a password reset with the emailed token. Every existing API
+     * token for the account is revoked, so a reset also signs out any
+     * session an attacker may have held.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $request->only(['email', 'password', 'password_confirmation', 'token']),
+            function (User $user, string $password): void {
+                $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+                $user->tokens()->delete();
+                event(new PasswordReset($user));
+            },
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            // One message for bad token, expired token and unknown email.
+            throw ValidationException::withMessages([
+                'email' => ['This reset link is invalid or has expired. Request a new one.'],
+            ]);
+        }
+
+        return response()->json(['message' => 'Your password has been reset. You can now sign in.']);
+    }
+
+    /**
+     * Confirm an email address from the link in the verification email.
+     * Works whether or not the visitor is signed in; the signed values in
+     * the link are the proof.
+     */
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'id' => ['required', 'integer'],
+            'hash' => ['required', 'string'],
+            'expires' => ['required', 'integer'],
+            'signature' => ['required', 'string'],
+        ]);
+
+        $user = User::find($validated['id']);
+
+        if (! $user || ! EmailVerificationLink::isValid($user, $validated['hash'], (int) $validated['expires'], $validated['signature'])) {
+            throw ValidationException::withMessages([
+                'signature' => ['This verification link is invalid or has expired. Request a new one from your profile.'],
+            ]);
+        }
+
+        if (! $user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return response()->json([
+            'data' => ['user' => new UserResource($user->fresh())],
+            'message' => 'Your email address is verified.',
+        ]);
+    }
+
+    /**
+     * Send the signed-in user a fresh verification email.
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Your email address is already verified.']);
+        }
+
+        if (! $this->sendVerificationEmail($user)) {
+            return response()->json([
+                'message' => 'We could not send the email right now. Please try again later.',
+            ], 503);
+        }
+
+        return response()->json(['message' => 'Verification email sent. Check your inbox.']);
+    }
+
+    /**
+     * Mail problems must never break sign-up or profile edits; they are
+     * reported and the caller can offer a resend.
+     */
+    private function sendVerificationEmail(User $user): bool
+    {
+        try {
+            $user->sendEmailVerificationNotification();
+
+            return true;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return false;
+        }
+    }}

@@ -46,10 +46,14 @@ class AdminController extends Controller
             'status' => ['sometimes', 'string', 'in:submitted,under_review,verified,resolved,rejected'],
             'category' => ['sometimes', 'string', 'in:road,flooding,garbage,streetlight,accessibility,environment,other'],
             'search' => ['sometimes', 'string', 'max:100'],
+            'barangay' => ['sometimes', 'string', 'max:100'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
         $query = CommunityReport::with(['user:id,name', 'location'])->latest('id');
+        if (! empty($filters['barangay'])) {
+            $query->whereHas('location', fn ($builder) => $builder->where('barangay', 'like', '%'.$filters['barangay'].'%'));
+        }
         if (! empty($filters['status'])) $query->where('status', $filters['status']);
         if (! empty($filters['category'])) $query->where('category', $filters['category']);
         if (! empty($filters['search'])) {
@@ -63,7 +67,10 @@ class AdminController extends Controller
 
     public function report(Request $request, CommunityReport $communityReport): CommunityReportResource
     {
-        return new CommunityReportResource($communityReport->load(['user:id,name', 'location']));
+        $communityReport->load(['user:id,name', 'location']);
+
+        return (new CommunityReportResource($communityReport))
+            ->withTimeline($communityReport->timeline(withActors: true));
     }
 
     public function users(Request $request)

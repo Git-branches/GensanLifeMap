@@ -24,15 +24,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:60,1')->group(function (): void {
     // Authentication (public, additionally rate-limited against abuse)
-    Route::middleware('throttle:10,1')->group(function (): void {
+    Route::middleware('throttle:auth')->group(function (): void {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
     });
+
+    // Account recovery and email confirmation (public; the emailed
+    // token or signature is the proof). Tighter limits than the default.
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
+    Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset');
+    Route::post('email/verify', [AuthController::class, 'verifyEmail'])->middleware('throttle:email-verify');
 
     // Authenticated account and resident report surface.
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
+        Route::post('email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:verification-notification');
         Route::put('user/profile', [AuthController::class, 'updateProfile']);
         Route::put('user/password', [AuthController::class, 'changePassword']);
 

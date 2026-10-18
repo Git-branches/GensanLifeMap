@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Downscale a phone photo before upload so it fits the server's 2 MB
  * limit without asking the resident to edit it. Returns the original
  * file when it is already small or the browser can't process it.

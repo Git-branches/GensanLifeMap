@@ -35,6 +35,7 @@ export default function AuthPage({ initialMode }: { initialMode: AuthMode }) {
 
   const changeMode = (next: AuthMode) => {
     setMode(next);
+    if (next === "forgot") return; // a step of signing in; keep the address as is
     const query = searchParams.toString();
     window.history.replaceState(null, "", `${next === "login" ? "/login" : "/register"}${query ? `?${query}` : ""}`);
   };
